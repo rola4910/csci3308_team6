@@ -1,1 +1,2 @@
-1. Spotify API only allows users to access their profile for 1 hr, we may need to implement something that kicks users out of their session after 1 hr to prevent confusion
+1. Spotify API only allows users to access their profile for 1 hr, need to implement code to refresh token for user after 1 hr
+
