@@ -71,6 +71,8 @@ app.use(
     })
 );
 
+app.use('/resources', express.static(path.join(__dirname, 'resources')));
+
 // const user = {
 //     username: undefined,
 //     password: undefined,
