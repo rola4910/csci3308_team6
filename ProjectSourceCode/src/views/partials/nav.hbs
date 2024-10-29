@@ -1,32 +1,41 @@
-<header>
- <nav class="navbar navbar-expand-sm border-bottom">
-   <div class="container">
-     <button
-       class="navbar-toggler ms-auto"
-       type="button"
-       data-bs-toggle="collapse"
-       data-bs-target="#navbar-collapse"
-       aria-controls="navbar"
-       aria-expanded="false"
-       aria-label="Toggle navigation">
-       <span class="navbar-toggler-icon"></span>
-     </button>
-     <div class="collapse navbar-collapse" id="navbar-collapse">
-       <ul class="navbar-nav me-auto">
-         <li class="nav-item">
-           <!-- TODO: For Discover, add a <a> tag with an attribute href to call the '/discover' API -->
-           {{#if login}}
-           <a class="nav-link" href='/discover'>Discover</a>
-           {{else}}
-           <a class="nav-link" href='/login'>Discover</a>
-           {{/if}}
-         </li>
-       </ul>
-       <div class="nav-item me-1">
-         <!-- TODO: For Logout, add a <a> tag with an attribute href to call the '/logout API -->
-         <a class = "nav-link" href = '/logout'>Logout</a>
-       </div>
-     </div>
-   </div>
- </nav>
-</header>
+<nav class="navbar bg-dark navbar-dark">
+    <div class="container">
+        <a class="navbar-brand" href="/login">Fix Your Mix</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+            data-bs-target="#navbarTogglerDemo01"
+            aria-controls="navbarTogglerDemo01" aria-expanded="false"
+            aria-label="Toggle navigation">
+            <img src="../../resources/images/IMG_5311.JPG" width=70>
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarTogglerDemo01">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    {{#if login}}
+                    <a class="nav-link active" href='/playlistEditor'>Playlist
+                        Editor</a>
+                    {{else}}
+                    <a class="nav-link disable" href='/login'>Playlist
+                        Editor</a>
+                    {{/if}}
+                </li>
+                <li class="nav-item">
+                    {{#if login}}
+                    <a class="nav-link active"
+                        href='/concerts'>Concerts Near Me</a>
+                    {{else}}
+                    <a class="nav-link disable"
+                        href='/concerts'>Concerts Near Me</a>
+                    {{/if}}
+                </li>
+                <li class="nav-item">
+                    {{#if login}}
+                    <a class="nav-link active" href='/logout'>Logout</a>
+                    {{else}}
+                    <a class="nav-link disable" href='/logout'>Logout</a>
+                    {{/if}}
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
