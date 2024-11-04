@@ -113,8 +113,8 @@ app.use('/resources', express.static(path.join(__dirname, 'resources')));
 // *****************************************************
 // <!-- Section 4 : API Routes -->
 // *****************************************************
-app.get('/', (req, res) => {
-	res.send("HELLO WORLD!");
+app.get('/', function (req, res) {
+	res.render('pages/login');
 });
 
 app.get('/login', function (req, res) {
@@ -168,6 +168,17 @@ app.post('/register', async (req, res) => {
         console.log(err);
     });
 });
+
+
+app.get('/', (req, res) => {
+	res.send("Hello World!");
+});
+
+app.get('/logout', (req, res) => {
+	req.session.destroy();
+	res.redirect('/login');
+});
+
 
 
 app.get('/', (req, res) => {
