@@ -13,37 +13,69 @@ const session = require('express-session'); // To set the session object. To sto
 const bcrypt = require('bcryptjs'); //  To hash passwords
 const axios = require('axios'); // To make HTTP requests from our server. We'll learn more about it in Part C.
 
+
+// API AUTHORIZATION
+const clientId = process.env.SPOTIFY_CLIENT_ID; // your clientId
+const redirectUrl = process.env.SPOTIFY_REDIRECT_URI;        // your redirect URL - must be localhost URL and/or HTTPS
+
+const authorizationEndpoint = process.env.AUTHORIZATION_ENDPOINT;
+const tokenEndpoint = process.env.TOKEN_ENDPOINT;
+const scope = process.env.SCOPEn;
+
+/**
+ * CODE VERIFIER:
+ * PKCE auth flow begins with creation of code verifier, 43-128 char random string.
+ * @param {number} length 
+ * @returns code verifier 
+ */
+const generateRandomString = (length) => {
+	const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+	const values = crypto.getRandomValues(new Uint8Array(length));
+	return values.reduce((acc, x) => acc + possible[x % possible.length], "");
+}
+
+const codeVerifier = generateRandomString(64);
+
+/** CODE CHALLENGE:
+ *  Once verifier generated, hash it using SHA256l. Thia value is sent within user authorization request.
+ */
+const sha256 = async (plain) => {
+	const encoder = new TextEncoder()
+	const data = encoder.encode(plain)
+	return window.crypto.subtle.digest('SHA-256', data)
+}
+
 // *****************************************************
 // <!-- Section 2 : Connect to DB -->
 // *****************************************************
 
 // create `ExpressHandlebars` instance and configure the layouts and partials dir.
 const hbs = handlebars.create({
-    extname: 'hbs',
-    layoutsDir: __dirname + '/views/layouts',
-    partialsDir: __dirname + '/views/partials',
+	extname: 'hbs',
+	layoutsDir: __dirname + '/views/layouts',
+	partialsDir: __dirname + '/views/partials',
 });
 
 // database configuration
 const dbConfig = {
-    host: 'db', // the database server
-    port: 5432, // the database port
-    database: process.env.POSTGRES_DB, // the database name
-    user: process.env.POSTGRES_USER, // the user account to connect with
-    password: process.env.POSTGRES_PASSWORD, // the password of the user account
+	host: 'db', // the database server
+	port: 5432, // the database port
+	database: process.env.POSTGRES_DB, // the database name
+	user: process.env.POSTGRES_USER, // the user account to connect with
+	password: process.env.POSTGRES_PASSWORD, // the password of the user account
 };
 
 const db = pgp(dbConfig);
 
 // test your database
 db.connect()
-    .then(obj => {
-        console.log('Database connection successful'); // you can view this message in the docker compose logs
-        obj.done(); // success, release the connection;
-    })
-    .catch(error => {
-        console.log('ERROR:', error.message || error);
-    });
+	.then(obj => {
+		console.log('Database connection successful'); // you can view this message in the docker compose logs
+		obj.done(); // success, release the connection;
+	})
+	.catch(error => {
+		console.log('ERROR:', error.message || error);
+	});
 
 
 // *****************************************************
@@ -58,17 +90,17 @@ app.use(bodyParser.json()); // specify the usage of JSON for parsing request bod
 
 // initialize session variables
 app.use(
-    session({
-        secret: process.env.SESSION_SECRET,
-        saveUninitialized: false,
-        resave: false,
-    })
+	session({
+		secret: process.env.SESSION_SECRET,
+		saveUninitialized: false,
+		resave: false,
+	})
 );
 
 app.use(
-    bodyParser.urlencoded({
-        extended: true,
-    })
+	bodyParser.urlencoded({
+		extended: true,
+	})
 );
 
 app.use('/resources', express.static(path.join(__dirname, 'resources')));
@@ -82,12 +114,23 @@ app.use('/resources', express.static(path.join(__dirname, 'resources')));
 // <!-- Section 4 : API Routes -->
 // *****************************************************
 app.get('/login', function (req, res) {
-    res.render('pages/login');
+	res.render('pages/login');
 });
 
 // app.post('/login', (req, res) => {
 
 // });
+
+
+app.get('/', (req, res) => {
+	res.send("Hello World!");
+});
+
+app.get('/logout', (req, res) => {
+	req.session.destroy();
+	res.redirect('/login');
+});
+
 
 // *****************************************************
 // <!-- Section 5 : Start Server-->
