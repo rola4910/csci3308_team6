@@ -1,3 +1,9 @@
-Figure out Spotify playlist complexity 
+- Figure out Spotify playlist complexity 
 
-How does the spotify api take dates? Are tracks considered albums? 
+- How does the spotify api take dates? Are tracks considered albums? 
+
+- We need to get a much better understanding of what we actually want to make and requirements for it
+
+- the wizards of waverly place is getting a remake
+
+- mel wants to make an Oregon Trail esq. Pokemon game to teach about climate change...idk about this liberal mumbo jumbo
