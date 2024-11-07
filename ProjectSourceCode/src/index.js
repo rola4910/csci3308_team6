@@ -85,6 +85,10 @@ app.get('/login', function (req, res) {
     res.render('pages/login');
 });
 
+app.get('/makePlaylist', function (req, res) {
+    res.render('pages/makePlaylist');
+});
+
 // app.post('/login', (req, res) => {
 
 // });

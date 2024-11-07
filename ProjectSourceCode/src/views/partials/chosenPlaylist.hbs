@@ -1,0 +1,77 @@
+<!-- drop down bar: load in playlists from db, each playlist will be a button that will load the playlist in the below card -->
+
+<!-- DROP DOWN -->
+<br>
+<div class="chosen-playlist-dropdown">
+    <button class="btn btn-secondary dropdown-toggle" type="button"
+        data-bs-toggle="dropdown" aria-expanded="false">Select a
+        Playlist</button>
+    {{#each playlists}}
+    <ul class="dropdown-menu dropdown-menu-dark">
+        {{!-- FIXME: the below code was originally an a tag, if this code is
+        broken try putting it back to an a tag --}}
+        <li><button id="playlist-button" class="dropdown-item active"
+                onclick="selectPlaylist()">{{playlists.name}}</button></li>
+    </ul>
+    {{/each}}
+</div>
+<br>
+
+<div class="row">
+    <!-- SELECTED PLAYLIST CARD -->
+    <div id="chosen-playlist-card" class="card col-sm-6">
+        <div class="card-header">
+            {{playlists.name}}
+            <!-- FIXME: is this syntax wrong? playlist name from playlists table-->
+        </div>
+        <ul class="list-group list-group-flush list-group-horizontal">
+            <li class="list-group-item">Song</li>
+            <li class="list-group-item">Artist</li>
+            <li class="list-group-item">Release Date</li>
+        </ul>
+
+        {{!-- {{#each playlist_songs}}
+        <ul class="list-group list-group-flush list-group-horizontal">
+            <button id="select-button" onclick="colorChange()"></button>
+            <li class="list-group-item">{{this.name}}</li>
+            <li class="list-group-item">{{this.artist}}</li>
+            <li class="list-group-item">{{this.album_release}}</li>
+        </ul>
+        {{/each}} --}}
+        <ul class="list-group list-group-flush list-group-horizontal">
+            <button id="select-button" onclick="colorChange()"></button>
+            <li class="list-group-item">a</li>
+            <li class="list-group-item">{{this.artist}}</li>
+            <li class="list-group-item">{{this.album_release}}</li>
+        </ul>
+
+    </div>
+
+    <div id="new-playlist-card" class="card col-sm-6">
+        {{!-- FIXME: need to make a /makePlaylist API call that takes in the new playlist name and adds a row to the db table --}}
+        <form action="/makePlaylist" method="GET"> 
+            <input type="text" class="form-control" id="playlist-name"
+                name="username" placeholder="playlist Name">
+        </form>
+        <ul class="list-group list-group-flush list-group-horizontal">
+            <li class="list-group-item">Song</li>
+            <li class="list-group-item">Artist</li>
+            <li class="list-group-item">Release Date</li>
+        </ul>
+
+    </div>
+
+</div>
+
+{{!-- FIXME: atm you only get to click it once, it turns blue and then thats it. fix to where you can unselect --}}
+<script>
+function colorChange() {
+  document.getElementById("select-button").style = "background-color: blue;";
+}
+</script>
+
+<script>
+function selectPlaylist() {
+    var selectedPlaylist = playlists.name;  
+}
+</script>

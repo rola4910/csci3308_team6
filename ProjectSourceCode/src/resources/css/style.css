@@ -2,27 +2,23 @@
     font-family: "Times New Roman", Times, serif !important;
 }
 
-.content-container {
-    position: relative;
-    width: 300px; /* Width of the content */
-    height: 300px; /* Height of the content */
+#select-button{
+    margin: 10px;
+    border-radius: 150px;
 }
 
-.border-overlay {
-    position: absolute;
-    top: -60px; /* Adjust to fit better */
-    left: -40px; /* Adjust to fit better */
-    right: -20px;
-    bottom: -60px;
-    background-image: url('/resources/images/border_test.png');
-    background-size: contain; /* Ensures the whole image fits */
-    background-repeat: no-repeat;
-    background-position: center;
-    z-index: 0; /* Behind content */
+.chosen-playlist-dropdown{
+    display: inline-block;
+    margin: 5px;
 }
 
-.content {
-    position: center;
-    z-index: 1; /* Ensure content appears above the border */
-    padding: 10px; /* Add padding to keep content away from edges */
+#chosen-playlist-card{
+    display: inline-block;
+    /* width: 18rem; */
+    margin: 5px;
 }
+
+/* #new-playlist-card{
+    width: 18rem;
+} */
+
