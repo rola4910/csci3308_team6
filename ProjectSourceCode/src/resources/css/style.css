@@ -8,17 +8,11 @@
 }
 
 .chosen-playlist-dropdown{
-    display: inline-block;
     margin: 5px;
 }
 
 #chosen-playlist-card{
-    display: inline-block;
-    /* width: 18rem; */
     margin: 5px;
 }
 
-/* #new-playlist-card{
-    width: 18rem;
-} */
 

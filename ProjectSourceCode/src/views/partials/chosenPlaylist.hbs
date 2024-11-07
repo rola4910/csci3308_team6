@@ -19,7 +19,7 @@
 
 <div class="row">
     <!-- SELECTED PLAYLIST CARD -->
-    <div id="chosen-playlist-card" class="card col-sm-6">
+    <div id="chosen-playlist-card" class="col-sm-4 mb-3 mb-sm-0">
         <div class="card-header">
             {{playlists.name}}
             <!-- FIXME: is this syntax wrong? playlist name from playlists table-->
@@ -47,7 +47,7 @@
 
     </div>
 
-    <div id="new-playlist-card" class="card col-sm-6">
+    <div id="new-playlist-card" class="col-sm-7 mb-3 mb-4">
         {{!-- FIXME: need to make a /makePlaylist API call that takes in the new playlist name and adds a row to the db table --}}
         <form action="/makePlaylist" method="GET"> 
             <input type="text" class="form-control" id="playlist-name"
