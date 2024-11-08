@@ -81,13 +81,61 @@ app.use('/resources', express.static(path.join(__dirname, 'resources')));
 // *****************************************************
 // <!-- Section 4 : API Routes -->
 // *****************************************************
+app.get('/', (req, res) => {
+	res.send("HELLO WORLD!");
+});
+
 app.get('/login', function (req, res) {
     res.render('pages/login');
 });
 
-// app.post('/login', (req, res) => {
+// login
+app.post('/login', async (req, res) => {
+    const query = `SELECT * FROM users WHERE username = $1`;
+    const username = req.body.username;
+    const user = db.one(query, username)
+    .then(async data =>      {
+        const match = await bcrypt.compare(req.body.password, data.password);
 
-// });
+        if (match == false) {
+            return res.render('pages/login', {
+                message: "Incorrect username or password."
+            });
+        } else {
+            req.session.user = user;
+            req.session.save();
+            res.redirect('/');
+        }
+    })
+    .catch(err => {
+        res.redirect('/login');
+        console.log(err);
+        res.status(500);
+    });
+});
+
+app.get('/register', (req, res) => {
+    res.render('pages/register');
+});
+
+// Register
+app.post('/register', async (req, res) => {
+    //hash the password using bcrypt library
+    const hash = await bcrypt.hash(req.body.password, 10);
+
+    // To-DO: Insert username and hashed password into the 'users' table
+    const query = `INSERT INTO users (username, password) VALUES ($1, $2) RETURNING *`;
+    const values = [req.body.username, hash];
+    db.one(query, values)
+    .then(async data => {
+        res.redirect('/login');
+        console.log('Registration success.');
+    })
+    .catch(err => {
+        res.redirect('/register');
+        console.log(err);
+    });
+});
 
 // *****************************************************
 // <!-- Section 5 : Start Server-->

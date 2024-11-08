@@ -1,0 +1,20 @@
+<div class="h-100 d-flex align-items-start justify-content-center">
+    <div class="w-100" style="max-width: 400px;">
+        <h1 class="text-left"><b>Register</b></h1>
+        <form action="/register" method="POST">
+            {{> message}}
+            <div class="mb-3">
+                <label for="username" class="form-label">Username</label>
+                <input type="text" class="form-control" name="username" placeholder="">
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" class="form-control" name="password">
+            </div>
+            <div class="mb-3">
+                <button type="submit" class="btn btn-primary mb-3">Register</button>
+            </div>
+            <div class="form-text">Already have an account? <a href="/login">Login</a></div>
+        </form>
+    </div>
+</div>
