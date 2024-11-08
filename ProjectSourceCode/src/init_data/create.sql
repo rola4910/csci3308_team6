@@ -15,4 +15,9 @@ CREATE TABLE playlist_songs (
     album_release VARCHAR(100) NOT NULL,
     added_at VARCHAR(100),
     popularity INTEGER NOT NULL,
-)
+);
+
+CREATE TABLE users (
+    username VARCHAR(100) NOT NULL,
+    password VARCHAR(100) NOT NULL,
+);
