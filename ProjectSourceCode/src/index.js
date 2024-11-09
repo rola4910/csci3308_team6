@@ -18,7 +18,7 @@ const querystring = require('querystring');
 
 
 // *****************************************************
-// <!-- Section 1 : Import Dependencies -->
+// <!-- Section 2 : AUTHORIZATION HELPERS
 // *****************************************************
 
 // API AUTHORIZATION
@@ -32,82 +32,6 @@ const clientId = "c25f72fe66174e8ab75756ddc591301f";
 const redirectUri = "http://localhost:3000/callback";
 const scope = 'user-read-private user-read-email';
 const clientSecret = '07e098d9c6d7421494042196d2b322fd';
-
-app.get('/login2', function (req, res) {
-
-	var state = generateRandomString(16);
-
-	res.redirect('https://accounts.spotify.com/authorize?' +
-		querystring.stringify({
-			response_type: 'code',
-			client_id: clientId,
-			scope: scope,
-			redirect_uri: redirectUri,
-			state: state
-		}));
-});
-
-app.get('/callback', function (req, res) {
-
-	var code = req.query.code || null;
-	var state = req.query.state || null;
-
-	if (state === null) {
-		res.redirect('/login' +
-			querystring.stringify({
-				error: 'state_mismatch'
-			}));
-	} else {
-		var authOptions = {
-			url: 'https://accounts.spotify.com/api/token',
-			form: {
-				code: code,
-				redirect_uri: redirectUri,
-				grant_type: 'authorization_code'
-			},
-			headers: {
-				'content-type': 'application/x-www-form-urlencoded',
-				'Authorization': 'Basic ' + (new Buffer.from(clientId + ':' + clientSecret).toString('base64'))
-			},
-			json: true
-		};
-
-		axios.post(authOptions.url, authOptions.form, { headers: authOptions.headers })
-		.then(response => {
-			res.send(response.data);
-		})
-		.catch(error => {
-			res.send(error.message);
-		});
-
-	}
-});
-
-// TEST QUERY AGAINST SPOTIFY API
-app.get('/getUser')
-
-
-app.get('/getUserPlaylists', async (req, res) => {
-	// Replace {user_id} with the actual user ID you want to fetch playlists for
-	const userId = 'pisecrest'; // You can retrieve this dynamically if needed
-
-	// Assume accessToken is obtained during the authorization flow and stored in a variable
-	const accessToken = 'BQCeFEY-jcaOayAWNM4sIfJ3hMVMx3vUyAw7tdG0IvrOSs3Ff_fa9BVS7YXNO4XFUXgfoUikYUBOvGRIZF8jyBAyTzY2WNKb6fVin8xHLQ9R4B92rkap6bOS3dGbM4zf-pGiN-A3vAhJ_cd6NSc4DCzKFVn6DWKzOwjNm8VAV9zA8hmj3aKCluG5NFfCmhBHLfVrG7rk'; // Replace with your actual access token
-
-	const options = {
-		headers: {
-			'Authorization': `Bearer ${accessToken}`
-		}
-	};
-
-	try {
-		const response = await axios.get(`https://api.spotify.com/v1/users/${userId}/playlists`, options);
-		res.send(response.data); // Send the playlists data as the response
-	} catch (error) {
-		console.error(error); // Log error for debugging
-		res.status(error.response.status).send(error.response.data); // Send error response
-	}
-});
 
 // *****************************************************
 // <!-- Section 2 : Connect to DB -->
@@ -231,33 +155,6 @@ app.post('/register', async (req, res) => {
         res.redirect('/register');
         console.log(err);
     });
-});
-
-
-app.get('/', (req, res) => {
-	res.send("Hello World!");
-});
-
-app.get('/logout', (req, res) => {
-	req.session.destroy();
-	res.redirect('/login');
-});
-
-
-
-app.get('/', (req, res) => {
-	res.send("Hello World!");
-});
-
-app.get('/logout', (req, res) => {
-	req.session.destroy();
-	res.redirect('/login');
-});
-
-
-
-app.get('/', (req, res) => {
-	res.send("Hello World!");
 });
 
 app.get('/logout', (req, res) => {
