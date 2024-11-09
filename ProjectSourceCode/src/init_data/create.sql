@@ -19,5 +19,5 @@ CREATE TABLE playlist_songs (
 
 CREATE TABLE users (
     username VARCHAR(100) NOT NULL,
-    password VARCHAR(100) NOT NULL,
+    password VARCHAR(100) NOT NULL
 );
