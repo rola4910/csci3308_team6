@@ -22,11 +22,13 @@ const generateRandomString = (length) => {
 	return values.reduce((acc, x) => acc + possible[x % possible.length], "");
 }
 
+// TODO securely store clientSecret, move other vars to .env
 const clientId = "c25f72fe66174e8ab75756ddc591301f";
 const redirectUri = "http://localhost:3000/callback";
 const scope = 'user-read-private user-read-email';
 const clientSecret = '07e098d9c6d7421494042196d2b322fd';
 
+// temp login route for Spotify authorization
 app.get('/login2', function (req, res) {
 
 	var state = generateRandomString(16);
@@ -41,6 +43,7 @@ app.get('/login2', function (req, res) {
 		}));
 });
 
+// callback function
 app.get('/callback', function (req, res) {
 
 	var code = req.query.code || null;
@@ -66,27 +69,26 @@ app.get('/callback', function (req, res) {
 			json: true
 		};
 
+		// exchange authorization code for access token
 		axios.post(authOptions.url, authOptions.form, { headers: authOptions.headers })
-		.then(response => {
-			res.send(response.data);
-		})
-		.catch(error => {
-			res.send(error.message);
-		});
-
+			.then(response => {
+				res.send(response.data);
+			})
+			.catch(error => {
+				res.send(error.message);
+			});
 	}
 });
 
-// TEST QUERY AGAINST SPOTIFY API
-app.get('/getUser')
-
-
+// TEST QUERY AGAINST SPOTIFY API - FETCH USER PLAYLISTS
 app.get('/getUserPlaylists', async (req, res) => {
 	// Replace {user_id} with the actual user ID you want to fetch playlists for
-	const userId = 'pisecrest'; // You can retrieve this dynamically if needed
+	// TODO dynamically fetch userId
+	const userId = 'pisecrest';
 
 	// Assume accessToken is obtained during the authorization flow and stored in a variable
-	const accessToken = 'BQCeFEY-jcaOayAWNM4sIfJ3hMVMx3vUyAw7tdG0IvrOSs3Ff_fa9BVS7YXNO4XFUXgfoUikYUBOvGRIZF8jyBAyTzY2WNKb6fVin8xHLQ9R4B92rkap6bOS3dGbM4zf-pGiN-A3vAhJ_cd6NSc4DCzKFVn6DWKzOwjNm8VAV9zA8hmj3aKCluG5NFfCmhBHLfVrG7rk'; // Replace with your actual access token
+	// fetch accessToken dynamically
+	const accessToken = 'BQCeFEY-jcaOayAWNM4sIfJ3hMVMx3vUyAw7tdG0IvrOSs3Ff_fa9BVS7YXNO4XFUXgfoUikYUBOvGRIZF8jyBAyTzY2WNKb6fVin8xHLQ9R4B92rkap6bOS3dGbM4zf-pGiN-A3vAhJ_cd6NSc4DCzKFVn6DWKzOwjNm8VAV9zA8hmj3aKCluG5NFfCmhBHLfVrG7rk';
 
 	const options = {
 		headers: {
@@ -96,10 +98,10 @@ app.get('/getUserPlaylists', async (req, res) => {
 
 	try {
 		const response = await axios.get(`https://api.spotify.com/v1/users/${userId}/playlists`, options);
-		res.send(response.data); // Send the playlists data as the response
+		res.send(response.data);
 	} catch (error) {
-		console.error(error); // Log error for debugging
-		res.status(error.response.status).send(error.response.data); // Send error response
+		console.error(error);
+		res.status(error.response.status).send(error.response.data);
 	}
 });
 
