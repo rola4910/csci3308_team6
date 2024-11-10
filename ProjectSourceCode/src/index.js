@@ -12,6 +12,102 @@ const bodyParser = require('body-parser');
 const session = require('express-session'); // To set the session object. To store or access session data, use the `req.session`, which is (generally) serialized as JSON by the store.
 const bcrypt = require('bcryptjs'); //  To hash passwords
 const axios = require('axios'); // To make HTTP requests from our server. We'll learn more about it in Part C.
+const crypto = require('crypto'); // Node.js crypto module
+const querystring = require('querystring');
+
+
+
+// *****************************************************
+// <!-- Section 1 : Import Dependencies -->
+// *****************************************************
+
+// API AUTHORIZATION
+const generateRandomString = (length) => {
+	const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+	const values = crypto.getRandomValues(new Uint8Array(length));
+	return values.reduce((acc, x) => acc + possible[x % possible.length], "");
+}
+
+const clientId = "c25f72fe66174e8ab75756ddc591301f";
+const redirectUri = "http://localhost:3000/callback";
+const scope = 'user-read-private user-read-email';
+const clientSecret = '07e098d9c6d7421494042196d2b322fd';
+
+app.get('/login2', function (req, res) {
+
+	var state = generateRandomString(16);
+
+	res.redirect('https://accounts.spotify.com/authorize?' +
+		querystring.stringify({
+			response_type: 'code',
+			client_id: clientId,
+			scope: scope,
+			redirect_uri: redirectUri,
+			state: state
+		}));
+});
+
+app.get('/callback', function (req, res) {
+
+	var code = req.query.code || null;
+	var state = req.query.state || null;
+
+	if (state === null) {
+		res.redirect('/login' +
+			querystring.stringify({
+				error: 'state_mismatch'
+			}));
+	} else {
+		var authOptions = {
+			url: 'https://accounts.spotify.com/api/token',
+			form: {
+				code: code,
+				redirect_uri: redirectUri,
+				grant_type: 'authorization_code'
+			},
+			headers: {
+				'content-type': 'application/x-www-form-urlencoded',
+				'Authorization': 'Basic ' + (new Buffer.from(clientId + ':' + clientSecret).toString('base64'))
+			},
+			json: true
+		};
+
+		axios.post(authOptions.url, authOptions.form, { headers: authOptions.headers })
+		.then(response => {
+			res.send(response.data);
+		})
+		.catch(error => {
+			res.send(error.message);
+		});
+
+	}
+});
+
+// TEST QUERY AGAINST SPOTIFY API
+app.get('/getUser')
+
+
+app.get('/getUserPlaylists', async (req, res) => {
+	// Replace {user_id} with the actual user ID you want to fetch playlists for
+	const userId = 'pisecrest'; // You can retrieve this dynamically if needed
+
+	// Assume accessToken is obtained during the authorization flow and stored in a variable
+	const accessToken = 'BQCeFEY-jcaOayAWNM4sIfJ3hMVMx3vUyAw7tdG0IvrOSs3Ff_fa9BVS7YXNO4XFUXgfoUikYUBOvGRIZF8jyBAyTzY2WNKb6fVin8xHLQ9R4B92rkap6bOS3dGbM4zf-pGiN-A3vAhJ_cd6NSc4DCzKFVn6DWKzOwjNm8VAV9zA8hmj3aKCluG5NFfCmhBHLfVrG7rk'; // Replace with your actual access token
+
+	const options = {
+		headers: {
+			'Authorization': `Bearer ${accessToken}`
+		}
+	};
+
+	try {
+		const response = await axios.get(`https://api.spotify.com/v1/users/${userId}/playlists`, options);
+		res.send(response.data); // Send the playlists data as the response
+	} catch (error) {
+		console.error(error); // Log error for debugging
+		res.status(error.response.status).send(error.response.data); // Send error response
+	}
+});
 
 // *****************************************************
 // <!-- Section 2 : Connect to DB -->
@@ -19,31 +115,31 @@ const axios = require('axios'); // To make HTTP requests from our server. We'll 
 
 // create `ExpressHandlebars` instance and configure the layouts and partials dir.
 const hbs = handlebars.create({
-    extname: 'hbs',
-    layoutsDir: __dirname + '/views/layouts',
-    partialsDir: __dirname + '/views/partials',
+	extname: 'hbs',
+	layoutsDir: __dirname + '/views/layouts',
+	partialsDir: __dirname + '/views/partials',
 });
 
 // database configuration
 const dbConfig = {
-    host: 'db', // the database server
-    port: 5432, // the database port
-    database: process.env.POSTGRES_DB, // the database name
-    user: process.env.POSTGRES_USER, // the user account to connect with
-    password: process.env.POSTGRES_PASSWORD, // the password of the user account
+	host: 'db', // the database server
+	port: 5432, // the database port
+	database: process.env.POSTGRES_DB, // the database name
+	user: process.env.POSTGRES_USER, // the user account to connect with
+	password: process.env.POSTGRES_PASSWORD, // the password of the user account
 };
 
 const db = pgp(dbConfig);
 
 // test your database
 db.connect()
-    .then(obj => {
-        console.log('Database connection successful'); // you can view this message in the docker compose logs
-        obj.done(); // success, release the connection;
-    })
-    .catch(error => {
-        console.log('ERROR:', error.message || error);
-    });
+	.then(obj => {
+		console.log('Database connection successful'); // you can view this message in the docker compose logs
+		obj.done(); // success, release the connection;
+	})
+	.catch(error => {
+		console.log('ERROR:', error.message || error);
+	});
 
 
 // *****************************************************
@@ -58,17 +154,17 @@ app.use(bodyParser.json()); // specify the usage of JSON for parsing request bod
 
 // initialize session variables
 app.use(
-    session({
-        secret: process.env.SESSION_SECRET,
-        saveUninitialized: false,
-        resave: false,
-    })
+	session({
+		secret: process.env.SESSION_SECRET,
+		saveUninitialized: false,
+		resave: false,
+	})
 );
 
 app.use(
-    bodyParser.urlencoded({
-        extended: true,
-    })
+	bodyParser.urlencoded({
+		extended: true,
+	})
 );
 
 app.use('/resources', express.static(path.join(__dirname, 'resources')));
@@ -81,8 +177,8 @@ app.use('/resources', express.static(path.join(__dirname, 'resources')));
 // *****************************************************
 // <!-- Section 4 : API Routes -->
 // *****************************************************
-app.get('/login', function (req, res) {
-    res.render('pages/login');
+app.get('/', function (req, res) {
+	res.render('pages/login');
 });
 
 app.get('/makePlaylist', function (req, res) {
@@ -90,8 +186,166 @@ app.get('/makePlaylist', function (req, res) {
 });
 
 // app.post('/login', (req, res) => {
+app.get('/login', function (req, res) {
+	res.render('pages/login');
+});
 
-// });
+// login
+app.post('/login', async (req, res) => {
+    const query = `SELECT * FROM users WHERE username = $1`;
+    const username = req.body.username;
+    const user = db.one(query, username)
+    .then(async data =>      {
+        const match = await bcrypt.compare(req.body.password, data.password);
+
+        if (match == false) {
+            return res.render('pages/login', {
+                message: "Incorrect username or password."
+            });
+        } else {
+            req.session.user = user;
+            req.session.save();
+            res.redirect('/');
+        }
+    })
+    .catch(err => {
+        res.redirect('/login');
+        console.log(err);
+        res.status(500);
+    });
+});
+
+app.get('/register', (req, res) => {
+    res.render('pages/register');
+});
+
+// Register
+app.post('/register', async (req, res) => {
+    //hash the password using bcrypt library
+    const hash = await bcrypt.hash(req.body.password, 10);
+
+    // To-DO: Insert username and hashed password into the 'users' table
+    const query = `INSERT INTO users (username, password) VALUES ($1, $2) RETURNING *`;
+    const values = [req.body.username, hash];
+    db.one(query, values)
+    .then(async data => {
+        res.redirect('/login');
+        console.log('Registration success.');
+    })
+    .catch(err => {
+        res.redirect('/register');
+        console.log(err);
+    });
+});
+
+
+app.get('/', (req, res) => {
+	res.send("Hello World!");
+});
+
+app.get('/logout', (req, res) => {
+	req.session.destroy();
+	res.redirect('/login');
+});
+
+
+
+app.get('/', (req, res) => {
+	res.send("Hello World!");
+});
+
+app.get('/logout', (req, res) => {
+	req.session.destroy();
+	res.redirect('/login');
+});
+
+
+
+app.get('/', (req, res) => {
+	res.send("Hello World!");
+});
+
+app.get('/logout', (req, res) => {
+	req.session.destroy();
+	res.redirect('/login');
+});
+
+// temp login route for Spotify authorization
+app.get('/login2', function (req, res) {
+
+	var state = generateRandomString(16);
+
+	res.redirect('https://accounts.spotify.com/authorize?' +
+		querystring.stringify({
+			response_type: 'code',
+			client_id: clientId,
+			scope: scope,
+			redirect_uri: redirectUri,
+			state: state
+		}));
+});
+
+// callback function for auth
+app.get('/callback', function (req, res) {
+
+	var code = req.query.code || null;
+	var state = req.query.state || null;
+
+	if (state === null) {
+		res.redirect('/login' +
+			querystring.stringify({
+				error: 'state_mismatch'
+			}));
+	} else {
+		var authOptions = {
+			url: 'https://accounts.spotify.com/api/token',
+			form: {
+				code: code,
+				redirect_uri: redirectUri,
+				grant_type: 'authorization_code'
+			},
+			headers: {
+				'content-type': 'application/x-www-form-urlencoded',
+				'Authorization': 'Basic ' + (new Buffer.from(clientId + ':' + clientSecret).toString('base64'))
+			},
+			json: true
+		};
+
+		// exchange authorization code for access token
+		axios.post(authOptions.url, authOptions.form, { headers: authOptions.headers })
+			.then(response => {
+				res.send(response.data);
+			})
+			.catch(error => {
+				res.send(error.message);
+			});
+	}
+});
+
+// TEST QUERY AGAINST SPOTIFY API - FETCH USER PLAYLISTS
+app.get('/getUserPlaylists', async (req, res) => {
+	// Replace {user_id} with the actual user ID you want to fetch playlists for
+	// TODO dynamically fetch userId
+	const userId = 'pisecrest';
+
+	// Assume accessToken is obtained during the authorization flow and stored in a variable
+	// fetch accessToken dynamically
+	const accessToken = 'BQCeFEY-jcaOayAWNM4sIfJ3hMVMx3vUyAw7tdG0IvrOSs3Ff_fa9BVS7YXNO4XFUXgfoUikYUBOvGRIZF8jyBAyTzY2WNKb6fVin8xHLQ9R4B92rkap6bOS3dGbM4zf-pGiN-A3vAhJ_cd6NSc4DCzKFVn6DWKzOwjNm8VAV9zA8hmj3aKCluG5NFfCmhBHLfVrG7rk';
+
+	const options = {
+		headers: {
+			'Authorization': `Bearer ${accessToken}`
+		}
+	};
+
+	try {
+		const response = await axios.get(`https://api.spotify.com/v1/users/${userId}/playlists`, options);
+		res.send(response.data);
+	} catch (error) {
+		console.error(error);
+		res.status(error.response.status).send(error.response.data);
+	}
+});
 
 // *****************************************************
 // <!-- Section 5 : Start Server-->
