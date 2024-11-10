@@ -1,10 +1,12 @@
+DROP TABLE IF EXISTS playlists;
 CREATE TABLE playlists (
     id SERIAL PRIMARY KEY,  -- incrementing number to be used to link tables
     name VARCHAR(100) NOT NULL,
     playlist_id VARCHAR(32) NOT NULL, -- used for API calls
-    public BOOLEAN NOT NULL,
+    public BOOLEAN NOT NULL
 );
 
+DROP TABLE IF EXISTS playlist_songs;
 CREATE TABLE playlist_songs (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
@@ -14,9 +16,10 @@ CREATE TABLE playlist_songs (
     album_name VARCHAR(100) NOT NULL,
     album_release VARCHAR(100) NOT NULL,
     added_at VARCHAR(100),
-    popularity INTEGER NOT NULL,
+    popularity INTEGER NOT NULL
 );
 
+DROP TABLE IF EXISTS users;
 CREATE TABLE users (
     username VARCHAR(100) NOT NULL,
     password VARCHAR(100) NOT NULL
