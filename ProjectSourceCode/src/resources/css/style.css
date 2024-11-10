@@ -4,7 +4,10 @@
 
 #select-button{
     margin: 10px;
-    border-radius: 150px;
+    width: 1em; 
+    height: 1em; 
+    border-radius: 50%;
+    
 }
 
 .chosen-playlist-dropdown{

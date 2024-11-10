@@ -10,8 +10,7 @@
     <ul class="dropdown-menu dropdown-menu-dark">
         {{!-- FIXME: the below code was originally an a tag, if this code is
         broken try putting it back to an a tag --}}
-        <li><button id="playlist-button" class="dropdown-item active"
-                onclick="selectPlaylist()">{{playlists.name}}</button></li>
+        <a>{{playlists.name}}</a>
     </ul>
     {{/each}}
 </div>
@@ -35,7 +34,7 @@
                 {{#each playlist_songs}}
                 <ul class="list-group list-group-flush">
                     <li class="list-group-item d-flex justify-content-between">
-                        <button style="background-color: transparent" onclick="colorChange(this)">Select</button>
+                        <button style="background-color: transparent" onclick="colorChange()">Select</button>
                         <span>a</span>
                         <span>{{this.artist}}</span>
                         <span>{{this.album_release}}</span>
@@ -68,7 +67,7 @@
 {{!-- FIXME: atm you only get to click it once, it turns blue and then thats it. fix to where you can unselect --}}
 <script>
 function colorChange() {
-  if (button.style.backgroundColor === "blue") {
+  if (button.style.backgroundColor === "grey") {
     button.style.backgroundColor = "transparent"; // Reset to default
   } else {
     button.style.backgroundColor = "blue"; // Set to selected color
