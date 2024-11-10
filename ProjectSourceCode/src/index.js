@@ -82,6 +82,7 @@ app.use(
 		secret: process.env.SESSION_SECRET,
 		saveUninitialized: false,
 		resave: false,
+		cookie: { secure: false }
 	})
 );
 
@@ -105,56 +106,60 @@ app.get('/', function (req, res) {
 	res.render('pages/login');
 });
 
+app.get('/home', (req, res) => {
+	res.send("hello world!");
+});
+
 app.get('/login', function (req, res) {
 	res.render('pages/login');
 });
 
 // login
 app.post('/login', async (req, res) => {
-    const query = `SELECT * FROM users WHERE username = $1`;
-    const username = req.body.username;
-    const user = db.one(query, username)
-    .then(async data =>      {
-        const match = await bcrypt.compare(req.body.password, data.password);
+	const query = `SELECT * FROM users WHERE username = $1`;
+	const username = req.body.username;
+	const user = db.one(query, username)
+		.then(async data => {
+			const match = await bcrypt.compare(req.body.password, data.password);
 
-        if (match == false) {
-            return res.render('pages/login', {
-                message: "Incorrect username or password."
-            });
-        } else {
-            req.session.user = user;
-            req.session.save();
-            res.redirect('/');
-        }
-    })
-    .catch(err => {
-        res.redirect('/login');
-        console.log(err);
-        res.status(500);
-    });
+			if (match == false) {
+				return res.render('pages/login', {
+					message: "Incorrect username or password."
+				});
+			} else {
+				req.session.user = user;
+				req.session.save();
+				res.redirect('/home');
+			}
+		})
+		.catch(err => {
+			res.redirect('/login');
+			console.log(err);
+			res.status(500);
+		});
 });
 
 app.get('/register', (req, res) => {
-    res.render('pages/register');
+	res.render('pages/register');
 });
 
 // Register
 app.post('/register', async (req, res) => {
-    //hash the password using bcrypt library
-    const hash = await bcrypt.hash(req.body.password, 10);
+	//hash the password using bcrypt library
+	const hash = await bcrypt.hash(req.body.password, 10);
 
-    // To-DO: Insert username and hashed password into the 'users' table
-    const query = `INSERT INTO users (username, password) VALUES ($1, $2) RETURNING *`;
-    const values = [req.body.username, hash];
-    db.one(query, values)
-    .then(async data => {
-        res.redirect('/login');
-        console.log('Registration success.');
-    })
-    .catch(err => {
-        res.redirect('/register');
-        console.log(err);
-    });
+	// To-DO: Insert username and hashed password into the 'users' table
+	const query = `INSERT INTO users (username, password) VALUES ($1, $2) RETURNING *`;
+	const values = [req.body.username, hash];
+	db.one(query, values)
+		.then(async data => {
+			res.redirect('/login');
+			console.log('Registration success.');
+		})
+		.catch(err => {
+			res.redirect('/register');
+			console.log(err);
+		});
 });
 
 app.get('/logout', (req, res) => {
@@ -206,13 +211,94 @@ app.get('/callback', function (req, res) {
 		// exchange authorization code for access token
 		axios.post(authOptions.url, authOptions.form, { headers: authOptions.headers })
 			.then(response => {
-				res.send(response.data);
+				req.session.access_token = response.data.access_token;
+				req.session.refresh_token = response.data.refresh_token;
+
+				res.send({
+					access_token: req.session.access_token,
+					refresh_token: req.session.refresh_token
+				});
 			})
 			.catch(error => {
 				res.send(error.message);
 			});
 	}
 });
+
+function refreshAcessToken() {
+	if (req.session.access_token) {
+		return req.session.access_token;
+	} else {
+		var authOptions = {
+			url: 'https://accounts.spotify.com/api/token',
+			form: {
+				code: code,
+				redirect_uri: redirectUri,
+				grant_type: 'authorization_code'
+			},
+			headers: {
+				'content-type': 'application/x-www-form-urlencoded',
+				'Authorization': 'Basic ' + (new Buffer.from(clientId + ':' + clientSecret).toString('base64'))
+			},
+			json: true
+		};
+
+		axios.post(authOptions.url, authOptions.form, { headers: authOptions.headers })
+			.then(response => {
+				req.session.access_token = response.data.access_token;
+				req.session.refresh_token = response.data.refresh_token;
+
+				res.send({
+					access_token: req.session.access_token,
+					refresh_token: req.session.refresh_token
+				});
+			})
+			.catch(error => {
+				res.send(error.message);
+			});
+	}
+
+}
+
+const getRefreshToken = async (req) => {
+	// refresh token that has been previously stored
+	const refreshToken = req.session.refresh_token;
+	const url = "https://accounts.spotify.com/api/token";
+
+	if (req.session.access_token) {
+		return req.session.access_token;
+	}
+
+	if (!refreshToken) {
+		throw new Error('Refresh token is missing, please reauthenticate user.');
+	}
+
+	const headers = {
+		'Content-Type': 'application/x-www-form-urlencoded',
+		'Authorization': 'Basic ' + (Buffer.from(clientId + ':' + clientSecret).toString('base64'))
+	};
+
+	const data = new URLSearchParams({
+		grant_type: 'refresh_token',
+		refresh_token: refreshToken,
+		client_id: clientId
+	});
+
+	try {
+		const response = await axios.post(url, data, { headers });
+
+		req.session.access_token = response.data.access_token;
+
+		if (response.data.refresh_token) {
+			req.session.refresh_token = response.data.refresh_token;
+		}
+
+		return response.data.access_token;
+	} catch (error) {
+		console.error('Error refreshing token:', error);
+		throw new Error('Failed to refresh token');
+	}
+}
 
 // TEST QUERY AGAINST SPOTIFY API - FETCH USER PLAYLISTS
 app.get('/getUserPlaylists', async (req, res) => {
