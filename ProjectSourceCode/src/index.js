@@ -94,10 +94,6 @@ app.use(
 
 app.use('/resources', express.static(path.join(__dirname, 'resources')));
 
-// const user = {
-//     username: undefined,
-//     password: undefined,
-// };
 
 // *****************************************************
 // <!-- Section 4 : API Routes -->
@@ -106,13 +102,16 @@ app.get('/', function (req, res) {
 	res.render('pages/login');
 });
 
+
 app.get('/home', (req, res) => {
 	res.send("hello world!");
 });
 
+
 app.get('/login', function (req, res) {
 	res.render('pages/login');
 });
+
 
 // login
 app.post('/login', async (req, res) => {
@@ -139,9 +138,11 @@ app.post('/login', async (req, res) => {
 		});
 });
 
+
 app.get('/register', (req, res) => {
 	res.render('pages/register');
 });
+
 
 // Register
 app.post('/register', async (req, res) => {
@@ -162,10 +163,12 @@ app.post('/register', async (req, res) => {
 		});
 });
 
+
 app.get('/logout', (req, res) => {
 	req.session.destroy();
 	res.redirect('/login');
 });
+
 
 // temp login route for Spotify authorization
 app.get('/login2', function (req, res) {
@@ -181,6 +184,7 @@ app.get('/login2', function (req, res) {
 			state: state
 		}));
 });
+
 
 // callback function for auth
 app.get('/callback', function (req, res) {
@@ -302,13 +306,12 @@ const getRefreshToken = async (req) => {
 
 // TEST QUERY AGAINST SPOTIFY API - FETCH USER PLAYLISTS
 app.get('/getUserPlaylists', async (req, res) => {
-	// Replace {user_id} with the actual user ID you want to fetch playlists for
-	// TODO dynamically fetch userId
-	const userId = 'pisecrest';
-
-	// Assume accessToken is obtained during the authorization flow and stored in a variable
+	// Assume accessToken is obtained during the authorization flow and stored in session variable
 	// fetch accessToken dynamically
-	const accessToken = 'BQCeFEY-jcaOayAWNM4sIfJ3hMVMx3vUyAw7tdG0IvrOSs3Ff_fa9BVS7YXNO4XFUXgfoUikYUBOvGRIZF8jyBAyTzY2WNKb6fVin8xHLQ9R4B92rkap6bOS3dGbM4zf-pGiN-A3vAhJ_cd6NSc4DCzKFVn6DWKzOwjNm8VAV9zA8hmj3aKCluG5NFfCmhBHLfVrG7rk';
+	const accessToken = req.session.access_token;
+
+	// Replace {user_id} with the actual user ID you want to fetch playlists for
+	const userId = req.session.user_id;
 
 	const options = {
 		headers: {
@@ -324,6 +327,26 @@ app.get('/getUserPlaylists', async (req, res) => {
 		res.status(error.response.status).send(error.response.data);
 	}
 });
+
+
+// function to get user_id and populate, called in callback
+async function get_id() {
+	const options = {
+		headers: {
+			'Authorization': `Bearer ${req.session.access_token}`
+		}
+	};
+
+	try {
+		const user_obj = await axios.get(`https://api.spotify.com/v1/me`, options);
+		req.session.user_id = user_obj.id;
+		return user_obj.id;
+	} catch (error) {
+		console.log(error);
+		return;
+	}
+}
+
 
 // *****************************************************
 // <!-- Section 5 : Start Server-->
