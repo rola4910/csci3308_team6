@@ -98,13 +98,16 @@ app.use('/resources', express.static(path.join(__dirname, 'resources')));
 // *****************************************************
 // <!-- Section 4 : API Routes -->
 // *****************************************************
-app.get('/', function (req, res) {
+app.get('/', async function (req, res) {
+	if (req.session.access_token != null) {
+		req.session.uid = await get_id(req.session.access_token);
+	}
 	res.render('pages/login');
 });
 
 
-app.get('/home', (req, res) => {
-	res.send("hello world!");
+app.get('/playlistEditor', (req, res) => {
+	res.render('pages/playlistEditor');
 });
 
 
@@ -187,7 +190,7 @@ app.get('/login2', function (req, res) {
 
 
 // callback function for auth
-app.get('/callback', function (req, res) {
+app.get('/callback', async function (req, res) {
 
 	var code = req.query.code || null;
 	var state = req.query.state || null;
@@ -212,57 +215,19 @@ app.get('/callback', function (req, res) {
 			json: true
 		};
 
-		// exchange authorization code for access token
-		axios.post(authOptions.url, authOptions.form, { headers: authOptions.headers })
-			.then(response => {
-				req.session.access_token = response.data.access_token;
-				req.session.refresh_token = response.data.refresh_token;
-
-				res.send({
-					access_token: req.session.access_token,
-					refresh_token: req.session.refresh_token
-				});
-			})
-			.catch(error => {
-				res.send(error.message);
-			});
+		try {		
+			// exchange authorization code for access token
+			const response = await axios.post(authOptions.url, authOptions.form, { headers: authOptions.headers });
+			req.session.access_token = response.data.access_token;
+			req.session.refresh_token = response.data.refresh_token;
+			res.redirect("/");
+		} 
+		catch (error) {
+			res.rend(error)
+		}
 	}
 });
 
-function refreshAcessToken() {
-	if (req.session.access_token) {
-		return req.session.access_token;
-	} else {
-		var authOptions = {
-			url: 'https://accounts.spotify.com/api/token',
-			form: {
-				code: code,
-				redirect_uri: redirectUri,
-				grant_type: 'authorization_code'
-			},
-			headers: {
-				'content-type': 'application/x-www-form-urlencoded',
-				'Authorization': 'Basic ' + (new Buffer.from(clientId + ':' + clientSecret).toString('base64'))
-			},
-			json: true
-		};
-
-		axios.post(authOptions.url, authOptions.form, { headers: authOptions.headers })
-			.then(response => {
-				req.session.access_token = response.data.access_token;
-				req.session.refresh_token = response.data.refresh_token;
-
-				res.send({
-					access_token: req.session.access_token,
-					refresh_token: req.session.refresh_token
-				});
-			})
-			.catch(error => {
-				res.send(error.message);
-			});
-	}
-
-}
 
 const getRefreshToken = async (req) => {
 	// refresh token that has been previously stored
@@ -311,7 +276,7 @@ app.get('/getUserPlaylists', async (req, res) => {
 	const accessToken = req.session.access_token;
 
 	// Replace {user_id} with the actual user ID you want to fetch playlists for
-	const userId = req.session.user_id;
+	const userId = req.session.uid;
 
 	const options = {
 		headers: {
@@ -321,6 +286,7 @@ app.get('/getUserPlaylists', async (req, res) => {
 
 	try {
 		const response = await axios.get(`https://api.spotify.com/v1/users/${userId}/playlists`, options);
+		console.log("\n----\n", response, "\n----\n");
 		res.send(response.data);
 	} catch (error) {
 		console.error(error);
@@ -330,17 +296,17 @@ app.get('/getUserPlaylists', async (req, res) => {
 
 
 // function to get user_id and populate, called in callback
-async function get_id() {
+async function get_id(access_token) {
 	const options = {
 		headers: {
-			'Authorization': `Bearer ${req.session.access_token}`
+			'Authorization': `Bearer ${access_token}`
 		}
 	};
 
 	try {
 		const user_obj = await axios.get(`https://api.spotify.com/v1/me`, options);
-		req.session.user_id = user_obj.id;
-		return user_obj.id;
+		console.log("\n--get-id--\n", user_obj.data.id, "\n----\n")
+		return user_obj.data.id;
 	} catch (error) {
 		console.log(error);
 		return;
