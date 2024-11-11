@@ -1,21 +1,41 @@
-#login-card-title{
+#login-card-title {
     font-family: "Times New Roman", Times, serif !important;
 }
 
-.song-selector{
+.song-selector {
     margin: 10px;
-    width: 1em; 
-    height: 1em; 
+    width: 1em;
+    height: 1em;
     border-radius: 50%;
-    
+
 }
 
-#chosen-playlist-dropdown{
+#chosen-playlist-dropdown {
     margin: 5px;
 }
 
-#chosen-playlist-card{
+#chosen-playlist-card {
     margin: 5px;
 }
 
+#delete-playlist-dropdown {
 
+    margin-bottom: 50px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 10px;
+
+}
+
+#delete-cancel-btns {
+    margin-right: auto;
+    margin-left: auto;
+}
+
+#delete-btn {
+    padding: 15px;
+}
+
+#cancel-btn {
+    padding: 15px;
+}

@@ -156,6 +156,10 @@ app.get('/features.hbs', (req,res) =>{
 	res.render('pages/features.hbs');
 })
 
+app.get('/delete.hbs', (req,res) =>{
+	res.render('pages/delete.hbs');
+})
+
 // app.post('/login', (req, res) => {
 app.get('/login', function (req, res) {
 	res.render('pages/login');
