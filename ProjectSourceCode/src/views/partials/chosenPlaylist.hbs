@@ -3,14 +3,18 @@
 <!-- DROP DOWN -->
 <br>
 <div id="chosen-playlist-dropdown" class="dropdown">
-  <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-    Dropdown button
-  </button>
-  <ul class="dropdown-menu">
-    {{#each playlists}}
-    <li class="playlist-selector" onclick="selectedPlaylist({{this.id}})">{{this.name}}</li>
-    {{/each}}
-  </ul>
+    <button class="btn btn-secondary dropdown-toggle" type="button"
+        data-bs-toggle="dropdown" aria-expanded="false">
+        Dropdown button
+    </button>
+    <ul class="dropdown-menu">
+        {{#each playlists}}
+        <li class="playlist-selector">
+            <a href="/getSongs?id={{this.id}}">{{this.name}}
+            </a>
+        </li>
+        {{/each}}
+    </ul>
 </div>
 <br>
 
@@ -32,7 +36,9 @@
                 <ul class="list-group list-group-flush">
                     {{#each playlist_songs}}
                     <li class="list-group-item d-flex justify-content-between">
-                        <button class="song-selector" style="background-color: transparent" onclick="colorChange(event)"></button>
+                        <button class="song-selector"
+                            style="background-color: transparent"
+                            onclick="colorChange(event)"></button>
                         <span>{{this.name}}</span>
                         <span>{{this.artist}}</span>
                         <span>{{this.album_release}}</span>
@@ -46,8 +52,9 @@
     <div id="new-playlist-card" class="col-sm-7 mb-3 mb-4">
         <div class="card">
             <div class="card-body">
-                <form action="/makePlaylist" method="GET"> 
-                    <input type="text" class="form-control mb-3" id="playlist-name"
+                <form action="/makePlaylist" method="GET">
+                    <input type="text" class="form-control mb-3"
+                        id="playlist-name"
                         name="username" placeholder="playlist Name">
                 </form>
                 <ul class="list-group list-group-flush">

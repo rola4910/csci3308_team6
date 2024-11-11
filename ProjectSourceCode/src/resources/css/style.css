@@ -27,7 +27,7 @@
 
 }
 
-#delete-cancel-btns {
+/* #delete-cancel-btns {
     margin-right: auto;
     margin-left: auto;
 }
@@ -38,4 +38,18 @@
 
 #cancel-btn {
     padding: 15px;
+} */
+
+#delete-cancel-btns {
+    display: flex;
+    justify-content: center;
+    gap: 40px; /* Adjust the gap value as needed */
+}
+
+#delete-btn, #cancel-btn {
+    padding: 20px 20px;
+    border: none;
+    background-color: transparent;
+    font-size: 36px;
+    /* Add any other styling you need */
 }

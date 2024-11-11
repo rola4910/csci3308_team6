@@ -104,53 +104,46 @@ app.use('/resources', express.static(path.join(__dirname, 'resources')));
 app.get('/', function (req, res) {
 	res.render('pages/login');
 });
+app.get('/makePlaylist', (req, res) => {
+	const playlist_query = 'SELECT * FROM playlists;';
 
-app.get('/makePlaylist',  async (req, res) => {
-	// res.render('pages/makePlaylist');
+	db.any(playlist_query)
+	.then(data =>{
+		console.log(data[1].name)
+		const playlists = data;
+        // Render the makePlaylist page with the playlists and playlist songs
+        res.render('pages/makePlaylist', {playlists: playlists});
+	})
+	.catch(err => {
+        console.error(err);
+        res.status(500).send('Error retrieving playlists');
+    });
+})
 
-	// FIXME: main problem is essentially (i think)that this api route is trying to get the playlistId and use it in a query before it renders the page, however, the id cant be gotten until a user is on the page and interacting with it.
-	//FIXME: the below commented code is what needs to wok
- 	// const playlist_query = 'SELECT * FROM playlists;';
-    // const songs_query = 'SELECT * FROM playlist_songs WHERE playlist_id = $1;';
-    // const playlistId = await req.query.id; // Retrieve the id from the query parameters
+app.get('/getSongs', (req, res) => {
 
-	// console.log('Selected Playlist ID:', playlistId);
+	const playlist_query = 'SELECT * FROM playlists;';
+	const songs_query = 'SELECT * FROM playlist_songs WHERE playlist_id = $1;';
+    const playlistId = req.query.id; // Retrieve the id from the query parameters
 
-	// db.task('get-everything', task => {
-	// 	return task.batch([task.any(playlist_query), task.any(songs_query, playlistId)]);
-	//   })
-	//   .then(data => {
-	// 	const playlists = data[0];
-    //     const playlist_songs = data[1];
-    //     // Render the makePlaylist page with the playlists and playlist songs
-    //     res.render('pages/makePlaylist', {
-    //         playlists,
-    //         playlist_songs
-    //     });
-	//   })
-	//   .catch (err => {
-    //     console.error(err);
-    //     res.status(500).send('Error retrieving playlists and songs');
-    // });
+	console.log('Selected Playlist ID:', playlistId);
 
-
-	// try {
-    //     const playlists = await db.any(playlist_query);
-    //     const playlist_songs = await db.any(songs_query, id);
-    //     res.render('pages/makePlaylist', {playlists, playlist_songs});
-    // } catch (err) {
-    //     console.error(err);
-    //     res.status(500).send('Error retrieving playlists and songs');
-    // }
-
-	try {
-        const playlists = await db.any('SELECT * FROM playlists;');
-        const playlist_songs = await db.any('SELECT * FROM playlist_songs;');
-        res.render('pages/makePlaylist', { playlists, playlist_songs });
-    } catch (err) {
+	db.task('get-everything', task => {
+		return task.batch([task.any(playlist_query), task.any(songs_query, playlistId)]);
+	  })
+	  .then(data => {
+		const playlists = data[0];
+        const playlist_songs = data[1];
+        // Render the makePlaylist page with the playlists and playlist songs
+        res.render('pages/makePlaylist', {
+            playlists: playlists,
+            playlist_songs: playlist_songs
+        });
+	  })
+	  .catch (err => {
         console.error(err);
         res.status(500).send('Error retrieving playlists and songs');
-    }
+    });
 });
 app.get('/features.hbs', (req,res) =>{
 	res.render('pages/features.hbs');
