@@ -1,41 +1,51 @@
-<nav class="navbar bg-light navbar-light">
+<nav class="navbar navbar-light" style="background-color: #5bc0de;">
     <div class="container">
         <a class="navbar-brand" href="/login">Fix Your Mix</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-            data-bs-target="#navbarTogglerDemo01"
-            aria-controls="navbarTogglerDemo01" aria-expanded="false"
-            aria-label="Toggle navigation">
-            <img src="/resources/images/logo.png" width=70>
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarTogglerDemo01">
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                <li class="nav-item">
+        <div class="dropdown">
+            <button class="navbar-toggler dropdown-toggle" type="button" id="navbarDropdown" 
+            data-bs-toggle="dropdown" aria-expanded="false">
+                <img src="/resources/images/logo.png" width="70">
+            </button>
+            <!-- Dropdown Menu -->
+            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                <li>
                     {{#if login}}
-                    <a class="nav-link active" href='/playlistEditor'>Playlist
-                        Editor</a>
+                    <a class="dropdown-item" href='/playlistEditor'>Playlist Editor</a>
                     {{else}}
-                    <a class="nav-link disable" href='/login'>Playlist
-                        Editor</a>
+                    <a class="dropdown-item" href='/playlistEditor'>Playlist Editor</a>
                     {{/if}}
                 </li>
-                <li class="nav-item">
+                <li>
                     {{#if login}}
-                    <a class="nav-link active"
-                        href='/concerts'>Concerts Near Me</a>
+                    <a class="dropdown-item" href='/makePlaylist'>Make a Playlist</a>
                     {{else}}
-                    <a class="nav-link disable"
-                        href='/concerts'>Concerts Near Me</a>
+                    <a class="dropdown-item" href='/makePlaylist'>Make a Playlist</a>
                     {{/if}}
                 </li>
-                <li class="nav-item">
+                <li>
                     {{#if login}}
-                    <a class="nav-link active" href='/logout'>Logout</a>
+                    <a class="dropdown-item" href='/delete.hbs'>Delete Playlist</a>
                     {{else}}
-                    <a class="nav-link disable" href='/logout'>Logout</a>
+                    <a class="dropdown-item" href='/delete.hbs'>Delete Playlist</a>
+                    {{/if}}
+                </li>
+                <li>
+                    {{#if login}}
+                    <a class="dropdown-item" href='/concerts'>Concerts Near Me</a>
+                    {{else}}
+                    <a class="dropdown-item" href='/concerts'>Concerts Near Me</a>
+                    {{/if}}
+                </li>
+                <li>
+                    {{#if login}}
+                    <a class="dropdown-item" href='/logout'>Logout</a>
+                    {{else}}
+                    <a class="dropdown-item" href='/logout'>Logout</a>
                     {{/if}}
                 </li>
             </ul>
         </div>
     </div>
 </nav>
+
+
