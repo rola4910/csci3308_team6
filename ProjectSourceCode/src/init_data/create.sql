@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS playlists;
 CREATE TABLE playlists (
     id SERIAL PRIMARY KEY,  -- incrementing number to be used to link tables
     name VARCHAR(100) NOT NULL,
@@ -5,6 +6,7 @@ CREATE TABLE playlists (
     public BOOLEAN NOT NULL
 );
 
+DROP TABLE IF EXISTS playlist_songs;
 CREATE TABLE playlist_songs (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
@@ -18,6 +20,7 @@ CREATE TABLE playlist_songs (
     playlist_id INTEGER REFERENCES playlists(id)
 );
 
+DROP TABLE IF EXISTS users;
 CREATE TABLE users (
     username VARCHAR(100) NOT NULL,
     password VARCHAR(100) NOT NULL

@@ -82,6 +82,7 @@ app.use(
 		secret: process.env.SESSION_SECRET,
 		saveUninitialized: false,
 		resave: false,
+		cookie: { secure: false }
 	})
 );
 
@@ -93,15 +94,14 @@ app.use(
 
 app.use('/resources', express.static(path.join(__dirname, 'resources')));
 
-// const user = {
-//     username: undefined,
-//     password: undefined,
-// };
 
 // *****************************************************
 // <!-- Section 4 : API Routes -->
 // *****************************************************
-app.get('/', function (req, res) {
+app.get('/', async function (req, res) {
+	if (req.session.access_token != null) {
+		req.session.uid = await get_id(req.session.access_token);
+	}
 	res.render('pages/login');
 });
 app.get('/makePlaylist', (req, res) => {
@@ -154,9 +154,16 @@ app.get('/delete.hbs', (req,res) =>{
 })
 
 // app.post('/login', (req, res) => {
+
+app.get('/playlistEditor', (req, res) => {
+	res.render('pages/playlistEditor');
+});
+
+
 app.get('/login', function (req, res) {
 	res.render('pages/login');
 });
+
 
 // login
 app.post('/login', async (req, res) => {
@@ -173,7 +180,7 @@ app.post('/login', async (req, res) => {
 			} else {
 				req.session.user = user;
 				req.session.save();
-				res.redirect('/');
+				res.redirect('/home');
 			}
 		})
 		.catch(err => {
@@ -183,9 +190,11 @@ app.post('/login', async (req, res) => {
 		});
 });
 
+
 app.get('/register', (req, res) => {
 	res.render('pages/register');
 });
+
 
 // Register
 app.post('/register', async (req, res) => {
@@ -206,10 +215,12 @@ app.post('/register', async (req, res) => {
 		});
 });
 
+
 app.get('/logout', (req, res) => {
 	req.session.destroy();
 	res.redirect('/login');
 });
+
 
 // temp login route for Spotify authorization
 app.get('/login2', function (req, res) {
@@ -226,8 +237,9 @@ app.get('/login2', function (req, res) {
 		}));
 });
 
+
 // callback function for auth
-app.get('/callback', function (req, res) {
+app.get('/callback', async function (req, res) {
 
 	var code = req.query.code || null;
 	var state = req.query.state || null;
@@ -252,27 +264,68 @@ app.get('/callback', function (req, res) {
 			json: true
 		};
 
-		// exchange authorization code for access token
-		axios.post(authOptions.url, authOptions.form, { headers: authOptions.headers })
-			.then(response => {
-				res.send(response.data);
-			})
-			.catch(error => {
-				res.send(error.message);
-			});
+		try {		
+			// exchange authorization code for access token
+			const response = await axios.post(authOptions.url, authOptions.form, { headers: authOptions.headers });
+			req.session.access_token = response.data.access_token;
+			req.session.refresh_token = response.data.refresh_token;
+			res.redirect("/");
+		} 
+		catch (error) {
+			res.rend(error)
+		}
 	}
 });
 
 
+const getRefreshToken = async (req) => {
+	// refresh token that has been previously stored
+	const refreshToken = req.session.refresh_token;
+	const url = "https://accounts.spotify.com/api/token";
+
+	if (req.session.access_token) {
+		return req.session.access_token;
+	}
+
+	if (!refreshToken) {
+		throw new Error('Refresh token is missing, please reauthenticate user.');
+	}
+
+	const headers = {
+		'Content-Type': 'application/x-www-form-urlencoded',
+		'Authorization': 'Basic ' + (Buffer.from(clientId + ':' + clientSecret).toString('base64'))
+	};
+
+	const data = new URLSearchParams({
+		grant_type: 'refresh_token',
+		refresh_token: refreshToken,
+		client_id: clientId
+	});
+
+	try {
+		const response = await axios.post(url, data, { headers });
+
+		req.session.access_token = response.data.access_token;
+
+		if (response.data.refresh_token) {
+			req.session.refresh_token = response.data.refresh_token;
+		}
+
+		return response.data.access_token;
+	} catch (error) {
+		console.error('Error refreshing token:', error);
+		throw new Error('Failed to refresh token');
+	}
+}
+
 // TEST QUERY AGAINST SPOTIFY API - FETCH USER PLAYLISTS
 app.get('/getUserPlaylists', async (req, res) => {
-	// Replace {user_id} with the actual user ID you want to fetch playlists for
-	// TODO dynamically fetch userId
-	const userId = 'pisecrest';
-
-	// Assume accessToken is obtained during the authorization flow and stored in a variable
+	// Assume accessToken is obtained during the authorization flow and stored in session variable
 	// fetch accessToken dynamically
-	const accessToken = 'BQCeFEY-jcaOayAWNM4sIfJ3hMVMx3vUyAw7tdG0IvrOSs3Ff_fa9BVS7YXNO4XFUXgfoUikYUBOvGRIZF8jyBAyTzY2WNKb6fVin8xHLQ9R4B92rkap6bOS3dGbM4zf-pGiN-A3vAhJ_cd6NSc4DCzKFVn6DWKzOwjNm8VAV9zA8hmj3aKCluG5NFfCmhBHLfVrG7rk';
+	const accessToken = req.session.access_token;
+
+	// Replace {user_id} with the actual user ID you want to fetch playlists for
+	const userId = req.session.uid;
 
 	const options = {
 		headers: {
@@ -282,12 +335,33 @@ app.get('/getUserPlaylists', async (req, res) => {
 
 	try {
 		const response = await axios.get(`https://api.spotify.com/v1/users/${userId}/playlists`, options);
+		console.log("\n----\n", response, "\n----\n");
 		res.send(response.data);
 	} catch (error) {
 		console.error(error);
 		res.status(error.response.status).send(error.response.data);
 	}
 });
+
+
+// function to get user_id and populate, called in callback
+async function get_id(access_token) {
+	const options = {
+		headers: {
+			'Authorization': `Bearer ${access_token}`
+		}
+	};
+
+	try {
+		const user_obj = await axios.get(`https://api.spotify.com/v1/me`, options);
+		console.log("\n--get-id--\n", user_obj.data.id, "\n----\n")
+		return user_obj.data.id;
+	} catch (error) {
+		console.log(error);
+		return;
+	}
+}
+
 
 // *****************************************************
 // <!-- Section 5 : Start Server-->
