@@ -14,7 +14,8 @@ CREATE TABLE playlist_songs (
     album_name VARCHAR(100) NOT NULL,
     album_release VARCHAR(100) NOT NULL,
     added_at VARCHAR(100),
-    popularity INTEGER NOT NULL
+    popularity INTEGER NOT NULL,
+    playlist_id INTEGER REFERENCES playlists(id)
 );
 
 CREATE TABLE users (

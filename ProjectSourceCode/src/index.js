@@ -11,7 +11,7 @@ const pgp = require('pg-promise')(); // To connect to the Postgres DB from the n
 const bodyParser = require('body-parser');
 const session = require('express-session'); // To set the session object. To store or access session data, use the `req.session`, which is (generally) serialized as JSON by the store.
 const bcrypt = require('bcryptjs'); //  To hash passwords
-const axios = require('axios'); // To make HTTP requests from our server. We'll learn more about it in Part C.
+const axios = require('axios'); // To make HTTP requests from our server
 const crypto = require('crypto'); // Node.js crypto module
 const querystring = require('querystring');
 
@@ -105,8 +105,50 @@ app.get('/', function (req, res) {
 	res.render('pages/login');
 });
 
-app.get('/makePlaylist', function (req, res) {
-    res.render('pages/makePlaylist');
+app.get('/makePlaylist',  async (req, res) => {
+	// res.render('pages/makePlaylist');
+
+	const playlist_query = 'SELECT * FROM playlists;';
+    const songs_query = 'SELECT * FROM playlist_songs WHERE playlist_id = $1;';
+    const playlistId = await req.query.id; // Retrieve the id from the query parameters
+
+	console.log('Selected Playlist ID:', playlistId);
+
+	db.task('get-everything', task => {
+		return task.batch([task.any(playlist_query), task.any(songs_query, playlistId)]);
+	  })
+	  .then(data => {
+		const playlists = data[0];
+        const playlist_songs = data[1];
+        // Render the makePlaylist page with the playlists and playlist songs
+        res.render('pages/makePlaylist', {
+            playlists,
+            playlist_songs
+        });
+	  })
+	  .catch (err => {
+        console.error(err);
+        res.status(500).send('Error retrieving playlists and songs');
+    });
+
+
+	// try {
+    //     const playlists = await db.any(playlist_query);
+    //     const playlist_songs = await db.any(songs_query, id);
+    //     res.render('pages/makePlaylist', {playlists, playlist_songs});
+    // } catch (err) {
+    //     console.error(err);
+    //     res.status(500).send('Error retrieving playlists and songs');
+    // }
+
+	// try {
+    //     const playlists = await db.any('SELECT * FROM playlists;');
+    //     const playlist_songs = await db.any('SELECT * FROM playlist_songs;');
+    //     res.render('pages/makePlaylist', { playlists, playlist_songs });
+    // } catch (err) {
+    //     console.error(err);
+    //     res.status(500).send('Error retrieving playlists and songs');
+    // }
 });
 
 // app.post('/login', (req, res) => {
@@ -116,50 +158,50 @@ app.get('/login', function (req, res) {
 
 // login
 app.post('/login', async (req, res) => {
-    const query = `SELECT * FROM users WHERE username = $1`;
-    const username = req.body.username;
-    const user = db.one(query, username)
-    .then(async data =>      {
-        const match = await bcrypt.compare(req.body.password, data.password);
+	const query = `SELECT * FROM users WHERE username = $1`;
+	const username = req.body.username;
+	const user = db.one(query, username)
+		.then(async data => {
+			const match = await bcrypt.compare(req.body.password, data.password);
 
-        if (match == false) {
-            return res.render('pages/login', {
-                message: "Incorrect username or password."
-            });
-        } else {
-            req.session.user = user;
-            req.session.save();
-            res.redirect('/');
-        }
-    })
-    .catch(err => {
-        res.redirect('/login');
-        console.log(err);
-        res.status(500);
-    });
+			if (match == false) {
+				return res.render('pages/login', {
+					message: "Incorrect username or password."
+				});
+			} else {
+				req.session.user = user;
+				req.session.save();
+				res.redirect('/');
+			}
+		})
+		.catch(err => {
+			res.redirect('/login');
+			console.log(err);
+			res.status(500);
+		});
 });
 
 app.get('/register', (req, res) => {
-    res.render('pages/register');
+	res.render('pages/register');
 });
 
 // Register
 app.post('/register', async (req, res) => {
-    //hash the password using bcrypt library
-    const hash = await bcrypt.hash(req.body.password, 10);
+	//hash the password using bcrypt library
+	const hash = await bcrypt.hash(req.body.password, 10);
 
-    // To-DO: Insert username and hashed password into the 'users' table
-    const query = `INSERT INTO users (username, password) VALUES ($1, $2) RETURNING *`;
-    const values = [req.body.username, hash];
-    db.one(query, values)
-    .then(async data => {
-        res.redirect('/login');
-        console.log('Registration success.');
-    })
-    .catch(err => {
-        res.redirect('/register');
-        console.log(err);
-    });
+	// To-DO: Insert username and hashed password into the 'users' table
+	const query = `INSERT INTO users (username, password) VALUES ($1, $2) RETURNING *`;
+	const values = [req.body.username, hash];
+	db.one(query, values)
+		.then(async data => {
+			res.redirect('/login');
+			console.log('Registration success.');
+		})
+		.catch(err => {
+			res.redirect('/register');
+			console.log(err);
+		});
 });
 
 app.get('/logout', (req, res) => {
@@ -218,6 +260,7 @@ app.get('/callback', function (req, res) {
 			});
 	}
 });
+
 
 // TEST QUERY AGAINST SPOTIFY API - FETCH USER PLAYLISTS
 app.get('/getUserPlaylists', async (req, res) => {

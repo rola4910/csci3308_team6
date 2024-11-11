@@ -2,17 +2,15 @@
 
 <!-- DROP DOWN -->
 <br>
-<div class="chosen-playlist-dropdown">
-    <button class="btn btn-secondary dropdown-toggle" type="button"
-        data-bs-toggle="dropdown" aria-expanded="false">Select a
-        Playlist</button>
+<div id="chosen-playlist-dropdown" class="dropdown">
+  <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+    Dropdown button
+  </button>
+  <ul class="dropdown-menu">
     {{#each playlists}}
-    <ul class="dropdown-menu dropdown-menu-dark">
-        {{!-- FIXME: the below code was originally an a tag, if this code is
-        broken try putting it back to an a tag --}}
-        <a>{{playlists.name}}</a>
-    </ul>
+    <li class="playlist-selector" onclick="selectedPlaylist({{this.id}})">{{this.name}}</li>
     {{/each}}
+  </ul>
 </div>
 <br>
 
@@ -21,7 +19,7 @@
     <div id="chosen-playlist-card" class="col-sm-4 mb-3 mb-sm-0">
         <div class="card">
             <div class="card-header">
-                {{playlists.name}}
+                {{selectedPlaylistid.id}}
             </div>
             <ul class="list-group list-group-flush">
                 <li class="list-group-item d-flex justify-content-between">
@@ -31,16 +29,16 @@
                 </li>
 
                 <!-- Example Playlist Songs -->
-                {{#each playlist_songs}}
                 <ul class="list-group list-group-flush">
+                    {{#each playlist_songs}}
                     <li class="list-group-item d-flex justify-content-between">
-                        <button style="background-color: transparent" onclick="colorChange()">Select</button>
-                        <span>a</span>
+                        <button class="song-selector" style="background-color: transparent" onclick="colorChange(event)"></button>
+                        <span>{{this.name}}</span>
                         <span>{{this.artist}}</span>
                         <span>{{this.album_release}}</span>
                     </li>
+                    {{/each}}
                 </ul>
-                 {{/each}}
             </ul>
         </div>
     </div>
@@ -63,20 +61,3 @@
         </div>
     </div>
 </div>
-
-{{!-- FIXME: atm you only get to click it once, it turns blue and then thats it. fix to where you can unselect --}}
-<script>
-function colorChange() {
-  if (button.style.backgroundColor === "grey") {
-    button.style.backgroundColor = "transparent"; // Reset to default
-  } else {
-    button.style.backgroundColor = "blue"; // Set to selected color
-  }
-}
-</script>
-
-<script>
-function selectPlaylist() {
-    var selectedPlaylist = playlists.name;  
-}
-</script>

@@ -2,7 +2,7 @@
     font-family: "Times New Roman", Times, serif !important;
 }
 
-#select-button{
+.song-selector{
     margin: 10px;
     width: 1em; 
     height: 1em; 
@@ -10,7 +10,7 @@
     
 }
 
-.chosen-playlist-dropdown{
+#chosen-playlist-dropdown{
     margin: 5px;
 }
 
