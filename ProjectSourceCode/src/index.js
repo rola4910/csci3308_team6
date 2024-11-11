@@ -272,7 +272,7 @@ app.get('/callback', async function (req, res) {
 			res.redirect("/");
 		} 
 		catch (error) {
-			res.rend(error)
+			res.send(error)
 		}
 	}
 });

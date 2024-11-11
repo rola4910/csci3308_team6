@@ -1,32 +1,13 @@
-<!-- drop down bar: load in playlists from db, each playlist will be a button that will load the playlist in the below card -->
-
-<!-- DROP DOWN -->
-<br>
-<div id="chosen-playlist-dropdown" class="dropdown">
-    <button class="btn btn-secondary dropdown-toggle" type="button"
-        data-bs-toggle="dropdown" aria-expanded="false">
-        Dropdown button
-    </button>
-    <ul class="dropdown-menu">
-        {{#each playlists}}
-        <li class="playlist-selector">
-            <a href="/getSongs?id={{this.id}}">{{this.name}}
-            </a>
-        </li>
-        {{/each}}
-    </ul>
-</div>
-<br>
-
 <div class="row">
     <!-- SELECTED PLAYLIST CARD -->
-    <div id="chosen-playlist-card" class="col-sm-4 mb-3 mb-sm-0">
+    <div id="chosen-playlist-card">
         <div class="card">
             <div class="card-header">
                 {{selectedPlaylistid.id}}
             </div>
             <ul class="list-group list-group-flush">
                 <li class="list-group-item d-flex justify-content-between">
+                    <span></span>
                     <span>Song</span>
                     <span>Artist</span>
                     <span>Release Date</span>
@@ -46,25 +27,6 @@
                     {{/each}}
                 </ul>
             </ul>
-        </div>
-    </div>
-
-    <div id="new-playlist-card" class="col-sm-7 mb-3 mb-4">
-        <div class="card">
-            <div class="card-body">
-                <form action="/makePlaylist" method="GET">
-                    <input type="text" class="form-control mb-3"
-                        id="playlist-name"
-                        name="username" placeholder="playlist Name">
-                </form>
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item d-flex justify-content-between">
-                        <span>Song</span>
-                        <span>Artist</span>
-                        <span>Release Date</span>
-                    </li>
-                </ul>
-            </div>
         </div>
     </div>
 </div>
