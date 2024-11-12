@@ -7,7 +7,7 @@
     <ul class="dropdown-menu">
         {{#each playlists}}
         <li class="playlist-selector">
-            <a href="/getSongs?id={{this.id}}">{{this.name}}
+            <a href="/getSongs?id={{this.id}}&name={{this.name}}&currentPage={{../currentPage}}">{{this.name}}
             </a>
         </li>
         {{/each}}

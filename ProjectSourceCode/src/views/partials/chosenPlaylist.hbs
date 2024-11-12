@@ -2,8 +2,8 @@
     <!-- SELECTED PLAYLIST CARD -->
     <div id="chosen-playlist-card">
         <div class="card">
-            <div class="card-header">
-                {{selectedPlaylistid.id}}
+            <div class="card-header" style="text-align: center;">
+                {{playlistName}}
             </div>
             <ul class="list-group list-group-flush">
                 <li class="list-group-item d-flex justify-content-between">
@@ -16,7 +16,7 @@
                 <!-- Example Playlist Songs -->
                 <ul class="list-group list-group-flush">
                     {{#each playlist_songs}}
-                    <li class="list-group-item d-flex justify-content-between">
+                    <li id="song-list-group" class="list-group-item d-flex justify-content-between">
                         <button class="song-selector"
                             style="background-color: transparent"
                             onclick="colorChange(event)"></button>

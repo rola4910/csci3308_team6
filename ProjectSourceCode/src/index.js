@@ -104,60 +104,112 @@ app.get('/', async function (req, res) {
 	}
 	res.render('pages/login');
 });
+
+app.get('/features', (req, res) => {
+	res.render('pages/features');
+});
+
 app.get('/makePlaylist', (req, res) => {
 	const playlist_query = 'SELECT * FROM playlists;';
+	const currentPage = req.path;
+	console.log(currentPage);
 
 	db.any(playlist_query)
-	.then(data =>{
-		console.log(data[1].name)
-		const playlists = data;
-        // Render the makePlaylist page with the playlists and playlist songs
-        res.render('pages/makePlaylist', {playlists: playlists});
-	})
-	.catch(err => {
-        console.error(err);
-        res.status(500).send('Error retrieving playlists');
-    });
-})
+		.then(data => {
+			console.log(data[1].name)
+			const playlists = data;
+			// Render the makePlaylist page with the playlists and playlist songs
+			res.render('pages/makePlaylist', {
+				playlists: playlists,
+				currentPage: currentPage
+			});
+		})
+		.catch(err => {
+			console.error(err);
+			res.status(500).send('Error retrieving playlists');
+		});
+
+
+});
+
+app.get('/playlistEditor', (req, res) => {
+	const playlist_query = 'SELECT * FROM playlists;';
+	const currentPage = req.path;
+	console.log(currentPage);
+
+	db.any(playlist_query)
+		.then(data => {
+			console.log(data[1].name)
+			const playlists = data;
+			// Render the makePlaylist page with the playlists and playlist songs
+			res.render('pages/playlistEditor', {
+				playlists: playlists,
+				currentPage: currentPage
+			});
+		})
+		.catch(err => {
+			console.error(err);
+			res.status(500).send('Error retrieving playlists');
+		});
+});
+
+app.get('/delete', (req, res) => {
+	const playlist_query = 'SELECT * FROM playlists;';
+	const currentPage = req.path;
+	console.log(currentPage);
+
+	db.any(playlist_query)
+		.then(data => {
+			console.log(data[1].name)
+			const playlists = data;
+			// Render the makePlaylist page with the playlists and playlist songs
+			res.render('pages/delete', {
+				playlists: playlists,
+				currentPage: currentPage
+			});
+		})
+		.catch(err => {
+			console.error(err);
+			res.status(500).send('Error retrieving playlists');
+		});
+});
 
 app.get('/getSongs', (req, res) => {
 
 	const playlist_query = 'SELECT * FROM playlists;';
 	const songs_query = 'SELECT * FROM playlist_songs WHERE playlist_id = $1;';
-    const playlistId = req.query.id; // Retrieve the id from the query parameters
+	const playlistId = req.query.id; // Retrieve the id from the query parameters
+	const playlistName = req.query.name;
+	const currentPage = req.query.currentPage; // Gets the path of the current request
+	console.log('current page: ', currentPage);
 
-	console.log('Selected Playlist ID:', playlistId);
+	// console.log('Selected Playlist ID:', playlistId);
+	// console.log('Selected Playlist name:', playlistName);
 
 	db.task('get-everything', task => {
 		return task.batch([task.any(playlist_query), task.any(songs_query, playlistId)]);
-	  })
-	  .then(data => {
-		const playlists = data[0];
-        const playlist_songs = data[1];
-        // Render the makePlaylist page with the playlists and playlist songs
-        res.render('pages/makePlaylist', {
-            playlists: playlists,
-            playlist_songs: playlist_songs
-        });
-	  })
-	  .catch (err => {
-        console.error(err);
-        res.status(500).send('Error retrieving playlists and songs');
-    });
-});
-app.get('/features.hbs', (req,res) =>{
-	res.render('pages/features.hbs');
-})
+	})
+		.then(data => {
+			const playlists = data[0];
+			const playlist_songs = data[1];
+			// Render the currentPage with the playlists and playlist songs
+			if (currentPage === '/makePlaylist' || currentPage === '/playlistEditor' || currentPage === '/delete') {
+				res.render(`pages/${currentPage}`, {
+					playlists: playlists,
+					playlist_songs: playlist_songs,
+					playlistName: playlistName,
+					currentPage: currentPage
+				});
+			}
 
-app.get('/delete.hbs', (req,res) =>{
-	res.render('pages/delete.hbs');
-})
+		})
+		.catch(err => {
+			console.error(err);
+			res.status(500).send('Error retrieving playlists and songs');
+		});
+});
 
 // app.post('/login', (req, res) => {
-
-app.get('/playlistEditor', (req, res) => {
-	res.render('pages/playlistEditor');
-});
 
 
 app.get('/login', function (req, res) {
@@ -264,13 +316,13 @@ app.get('/callback', async function (req, res) {
 			json: true
 		};
 
-		try {		
+		try {
 			// exchange authorization code for access token
 			const response = await axios.post(authOptions.url, authOptions.form, { headers: authOptions.headers });
 			req.session.access_token = response.data.access_token;
 			req.session.refresh_token = response.data.refresh_token;
 			res.redirect("/");
-		} 
+		}
 		catch (error) {
 			res.send(error)
 		}
