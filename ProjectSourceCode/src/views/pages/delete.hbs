@@ -1,24 +1,11 @@
 <!-- DROP DOWN -->
 <br>
-<div id="delete-playlist-dropdown" class="dropdown center">
-  <button class="btn btn-secondary dropdown-toggle" type="button"
-    data-bs-toggle="dropdown" aria-expanded="false">
-    Playlist
-  </button>
-  <ul class="dropdown-menu">
-    {{#each playlists}}
-    <li class="playlist-selector"
-      onclick="selectedPlaylist({{this.id}})">{{this.name}}</li>
-    {{/each}}
-  </ul>
+<div id="delete-dropdown" >
+    {{>dropdown}}
 </div>
 <br>
 
 <div id="delete-cancel-btns">
   <button id="cancel-btn"><i class="bi bi-box-arrow-in-left"></i></button>
-  <button id="delete-btn"><i class="bi bi-trash"></i></button>
-
-</div>
-<div>
-
+  <button id="delete-btn"><img src="../../resources/images/flame.svg" style="width: 100px; height: 50px;"></button>
 </div>

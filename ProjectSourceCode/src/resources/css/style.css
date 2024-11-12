@@ -18,27 +18,12 @@
     margin: 5px;
 }
 
-#delete-playlist-dropdown {
-
+#delete-dropdown {
     margin-bottom: 50px;
     margin-left: auto;
     margin-right: auto;
     padding: 10px;
-
 }
-
-/* #delete-cancel-btns {
-    margin-right: auto;
-    margin-left: auto;
-}
-
-#delete-btn {
-    padding: 15px;
-}
-
-#cancel-btn {
-    padding: 15px;
-} */
 
 #delete-cancel-btns {
     display: flex;
