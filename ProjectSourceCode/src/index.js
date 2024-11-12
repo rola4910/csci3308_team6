@@ -15,8 +15,6 @@ const axios = require('axios'); // To make HTTP requests from our server. We'll 
 const crypto = require('crypto'); // Node.js crypto module
 const querystring = require('querystring');
 
-
-
 // *****************************************************
 // <!-- Section 2 : AUTHORIZATION HELPERS
 // *****************************************************
@@ -213,6 +211,7 @@ app.get('/callback', function (req, res) {
 			.then(response => {
 				req.session.access_token = response.data.access_token;
 				req.session.refresh_token = response.data.refresh_token;
+				req.session.access_token_expiry = response.data.expires_in;
 
 				res.send({
 					access_token: req.session.access_token,
@@ -223,42 +222,10 @@ app.get('/callback', function (req, res) {
 				res.send(error.message);
 			});
 	}
+
+	monitorTokens(req);
+
 });
-
-function refreshAcessToken() {
-	if (req.session.access_token) {
-		return req.session.access_token;
-	} else {
-		var authOptions = {
-			url: 'https://accounts.spotify.com/api/token',
-			form: {
-				code: code,
-				redirect_uri: redirectUri,
-				grant_type: 'authorization_code'
-			},
-			headers: {
-				'content-type': 'application/x-www-form-urlencoded',
-				'Authorization': 'Basic ' + (new Buffer.from(clientId + ':' + clientSecret).toString('base64'))
-			},
-			json: true
-		};
-
-		axios.post(authOptions.url, authOptions.form, { headers: authOptions.headers })
-			.then(response => {
-				req.session.access_token = response.data.access_token;
-				req.session.refresh_token = response.data.refresh_token;
-
-				res.send({
-					access_token: req.session.access_token,
-					refresh_token: req.session.refresh_token
-				});
-			})
-			.catch(error => {
-				res.send(error.message);
-			});
-	}
-
-}
 
 const getRefreshToken = async (req) => {
 	// refresh token that has been previously stored
@@ -324,6 +291,27 @@ app.get('/getUserPlaylists', async (req, res) => {
 		res.status(error.response.status).send(error.response.data);
 	}
 });
+
+const monitorTokens = (req) => {
+	// Check every minute if the access token is about to expire
+	setInterval(async () => {
+		console.log('Checking for expiry...')
+		const currentTime = Date.now();
+		const accessTokenExpiry = req.session.access_token_expiry;
+
+		// If the access token is about to expire (e.g., 5 minutes left)
+		if (accessTokenExpiry && (accessTokenExpiry - currentTime <= 5 * 60 * 1000)) {
+			console.log('Access token is about to expire, refreshing...');
+
+			try {
+				await getRefreshToken(req);  // Call the function to refresh the token
+				console.log('Access token refreshed successfully');
+			} catch (error) {
+				console.error('Error refreshing token:', error);
+			}
+		}
+	}, 5 * 1000); // 60 * 1000 = 60 sec  // Check every 60 seconds (adjust as needed)
+};
 
 // *****************************************************
 // <!-- Section 5 : Start Server-->
