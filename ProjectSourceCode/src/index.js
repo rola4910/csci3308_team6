@@ -232,10 +232,6 @@ const getRefreshToken = async (req) => {
 	const refreshToken = req.session.refresh_token;
 	const url = "https://accounts.spotify.com/api/token";
 
-	if (req.session.access_token) {
-		return req.session.access_token;
-	}
-
 	if (!refreshToken) {
 		throw new Error('Refresh token is missing, please reauthenticate user.');
 	}
@@ -260,7 +256,6 @@ const getRefreshToken = async (req) => {
 			req.session.refresh_token = response.data.refresh_token;
 		}
 
-		return response.data.access_token;
 	} catch (error) {
 		console.error('Error refreshing token:', error);
 		throw new Error('Failed to refresh token');
@@ -275,7 +270,7 @@ app.get('/getUserPlaylists', async (req, res) => {
 
 	// Assume accessToken is obtained during the authorization flow and stored in a variable
 	// fetch accessToken dynamically
-	const accessToken = 'BQCeFEY-jcaOayAWNM4sIfJ3hMVMx3vUyAw7tdG0IvrOSs3Ff_fa9BVS7YXNO4XFUXgfoUikYUBOvGRIZF8jyBAyTzY2WNKb6fVin8xHLQ9R4B92rkap6bOS3dGbM4zf-pGiN-A3vAhJ_cd6NSc4DCzKFVn6DWKzOwjNm8VAV9zA8hmj3aKCluG5NFfCmhBHLfVrG7rk';
+	const accessToken = req.session.access_token;
 
 	const options = {
 		headers: {
@@ -297,20 +292,20 @@ const monitorTokens = (req) => {
 	setInterval(async () => {
 		console.log('Checking for expiry...')
 		const currentTime = Date.now();
-		const accessTokenExpiry = req.session.access_token_expiry;
+		const accessTokenExpiry = req.session.access_token_expiry * 1000; // convert token expiration time to milliseconds
 
 		// If the access token is about to expire (e.g., 5 minutes left)
-		if (accessTokenExpiry && (accessTokenExpiry - currentTime <= 5 * 60 * 1000)) {
+		if (accessTokenExpiry && (accessTokenExpiry - currentTime <= 30 * 1000)) {
 			console.log('Access token is about to expire, refreshing...');
 
 			try {
 				await getRefreshToken(req);  // Call the function to refresh the token
-				console.log('Access token refreshed successfully');
+				console.log('Access token refreshed successfully', req.session.access_token);
 			} catch (error) {
 				console.error('Error refreshing token:', error);
 			}
 		}
-	}, 5 * 1000); // 60 * 1000 = 60 sec  // Check every 60 seconds (adjust as needed)
+	}, 5* 1000); // Check every 60 seconds
 };
 
 // *****************************************************
