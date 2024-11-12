@@ -1,0 +1,2 @@
+1. got API working and generating user playlists
+2. succesfully passed info between API routes and partials, but this was done using a GET request so user info is available in the URL
