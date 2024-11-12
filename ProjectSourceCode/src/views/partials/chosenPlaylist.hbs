@@ -1,32 +1,31 @@
-<div class="row">
-    <!-- SELECTED PLAYLIST CARD -->
-    <div id="chosen-playlist-card">
-        <div class="card">
-            <div class="card-header" style="text-align: center;">
-                {{playlistName}}
-            </div>
-            <ul class="list-group list-group-flush">
-                <li class="list-group-item d-flex justify-content-between">
-                    <span></span>
-                    <span>Song</span>
-                    <span>Artist</span>
-                    <span>Release Date</span>
-                </li>
-
-                <!-- Example Playlist Songs -->
-                <ul class="list-group list-group-flush">
-                    {{#each playlist_songs}}
-                    <li id="song-list-group" class="list-group-item d-flex justify-content-between">
-                        <button class="song-selector"
-                            style="background-color: transparent"
-                            onclick="colorChange(event)"></button>
-                        <span>{{this.name}}</span>
-                        <span>{{this.artist}}</span>
-                        <span>{{this.album_release}}</span>
-                    </li>
-                    {{/each}}
-                </ul>
-            </ul>
+<!-- SELECTED PLAYLIST CARD -->
+<div id="chosen-playlist-card">
+    <div class="card">
+        <div class="card-header" style="text-align: center;">
+            {{playlistName}}
         </div>
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item d-flex justify-content-between">
+                <span></span>
+                <span>Song</span>
+                <span>Artist</span>
+                <span>Release Date</span>
+            </li>
+
+            <!-- Example Playlist Songs -->
+            <ul class="list-group list-group-flush">
+                {{#each playlist_songs}}
+                <li id="song-list-group"
+                    class="list-group-item d-flex justify-content-between">
+                    <button class="song-selector"
+                        style="background-color: transparent"
+                        onclick="colorChange(event)"></button>
+                    <span>{{this.name}}</span>
+                    <span>{{this.artist}}</span>
+                    <span>{{this.album_release}}</span>
+                </li>
+                {{/each}}
+            </ul>
+        </ul>
     </div>
 </div>

@@ -112,7 +112,9 @@ app.get('/features', (req, res) => {
 app.get('/makePlaylist', (req, res) => {
 	const playlist_query = 'SELECT * FROM playlists;';
 	const currentPage = req.path;
+	const newPlaylistName = req.body.newName;
 	console.log(currentPage);
+	console.log(newPlaylistName);
 
 	db.any(playlist_query)
 		.then(data => {
@@ -174,13 +176,13 @@ app.get('/delete', (req, res) => {
 		});
 });
 
-app.get('/getSongs', (req, res) => {
+app.post('/getSongs', (req, res) => {
 
 	const playlist_query = 'SELECT * FROM playlists;';
 	const songs_query = 'SELECT * FROM playlist_songs WHERE playlist_id = $1;';
-	const playlistId = req.query.id; // Retrieve the id from the query parameters
-	const playlistName = req.query.name;
-	const currentPage = req.query.currentPage; // Gets the path of the current request
+	const playlistId = req.body.id; // Retrieve the id from the query parameters
+	const playlistName = req.body.name;
+	const currentPage = req.body.currentPage; // Gets the path of the current request
 	console.log('current page: ', currentPage);
 
 	// console.log('Selected Playlist ID:', playlistId);
@@ -209,11 +211,16 @@ app.get('/getSongs', (req, res) => {
 		});
 });
 
+app.post('/makeNewPlaylist', (req, res) => {
+	const newPlaylistName = req.body.name;
+	res.render('pages/makePlaylist', {newPlaylistName: newPlaylistName});
+	// INSERT NEW PLAYLIST TRACKS INTO db
+});
 // app.post('/login', (req, res) => {
 
 
 app.get('/login', function (req, res) {
-	res.render('pages/login');
+	res.render('pages/login', {bodyId: 'login-page'});
 });
 
 
