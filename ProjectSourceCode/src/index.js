@@ -112,9 +112,7 @@ app.get('/features', (req, res) => {
 app.get('/makePlaylist', (req, res) => {
 	const playlist_query = 'SELECT * FROM playlists;';
 	const currentPage = req.path;
-	const newPlaylistName = req.body.newName;
 	console.log(currentPage);
-	console.log(newPlaylistName);
 
 	db.any(playlist_query)
 		.then(data => {
@@ -211,8 +209,17 @@ app.post('/getSongs', (req, res) => {
 		});
 });
 
-app.post('/makeNewPlaylist', (req, res) => {
-	const newPlaylistName = req.body.name;
+app.get('/makeNewPlaylist', (req, res) => {
+	const newPlaylistName = req.body.newName;
+	const input = document.getElementById('playlist-name');
+    const title = document.getElementById('playlist-title');
+
+	if (newPlaylistName) {
+        // Hide the input field and show the title with the entered name
+        input.classList.add('d-none');
+        title.classList.remove('d-none');
+        title.textContent = playlistName;
+    }
 	res.render('pages/makePlaylist', {newPlaylistName: newPlaylistName});
 	// INSERT NEW PLAYLIST TRACKS INTO db
 });

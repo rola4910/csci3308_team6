@@ -13,20 +13,22 @@ function colorChange(event) {
 //     window.location.href = `/makePlaylist?id=${id}`;
 // }
 
-function setDraftPlaylistName(event) {
-    console.log('TEST');
-    const input = document.getElementById('playlist-name');
-    const title = document.getElementById('playlist-title');
+// function setDraftPlaylistName(event) {
+//     console.log('TEST');
+//     const input = document.getElementById('playlist-name');
+//     const title = document.getElementById('playlist-title');
 
+//     console.log('input:', input);
+//     console.log('title:', title);
 
-    // Get the input value
-    const playlistName = input.value.trim();
-    console.log('playlist name:', playlistName);
-    if (playlistName) {
-        // Hide the input field and show the title with the entered name
-        input.classList.add('d-none');
-        title.classList.remove('d-none');
-        title.textContent = playlistName;
-    }
+//     // Get the input value
+//     const playlistName = input.value.trim();
+//     console.log('playlist name:', playlistName);
+//     if (playlistName) {
+//         // Hide the input field and show the title with the entered name
+//         input.classList.add('d-none');
+//         title.classList.remove('d-none');
+//         title.textContent = playlistName;
+//     }
 
-}
+// }

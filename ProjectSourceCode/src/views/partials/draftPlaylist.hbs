@@ -1,12 +1,12 @@
 <div id="new-playlist-card" >
     <div class="card">
         <div class="card-body">
-            <form action="/makeNewPlaylist" method="POST">
+            <form action="/makeNewPlaylist" method="GET">
                 <input autocomplete="off" type="text" class="form-control mb-3"
                     id="playlist-name"
-                    name="newName" placeholder="playlist Name" onblur="setDraftPlaylistName()">
+                    name="newName" placeholder="playlist Name">
             </form>
-            <h3 id="playlist-title" class="d-none"></h3> <!-- Title element hidden initially -->
+            <h3 id="playlist-title" class="d-none">{{newPlaylistName}}</h3> <!-- Title element hidden initially -->
             <ul class="list-group list-group-flush">
                 <li class="list-group-item d-flex justify-content-between">
                     <span>Song</span>
