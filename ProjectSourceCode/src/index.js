@@ -224,6 +224,7 @@ app.get('/callback', async function (req, res) {
 				req.session.access_token = response.data.access_token;
 				req.session.refresh_token = response.data.refresh_token;
 				req.session.access_token_expiry = response.data.expires_in;
+				req.session.start_time = Date.now();
 
 				res.redirect('/');
 				// res.send({
@@ -327,15 +328,17 @@ const monitorTokens = (req) => {
 	setInterval(async () => {
 		console.log('Checking for expiry...')
 		const currentTime = Date.now();
+		const timeDiff = currentTime-req.session.start_time;
 		const accessTokenExpiry = req.session.access_token_expiry * 1000; // convert token expiration time to milliseconds
 
 		// If the access token is about to expire (5 minutes left)
-		if (accessTokenExpiry && (accessTokenExpiry - currentTime <= 5 * 60 * 1000)) {
+		if (accessTokenExpiry && (accessTokenExpiry - timeDiff <= 5 * 60 * 1000)) {
 			console.log('Access token is about to expire, refreshing...');
 
 			try {
 				await getRefreshToken(req);  // Call the function to refresh the token
 				console.log('Access token refreshed successfully', req.session.access_token);
+				req.session.start_time = Date.now();
 			} catch (error) {
 				console.error('Error refreshing token:', error);
 			}
