@@ -105,23 +105,22 @@ app.get('/', async function (req, res) {
 	res.render('pages/login');
 });
 
-<<<<<<< HEAD
 
 app.get('/playlistEditor', (req, res) => {
 	res.render('pages/playlistEditor');
 });
 
 
-=======
 app.get('/makePlaylist', function (req, res) {
     res.render('pages/makePlaylist');
 });
 
+
 // app.post('/login', (req, res) => {
->>>>>>> front-end
 app.get('/login', function (req, res) {
 	res.render('pages/login');
 });
+
 
 
 // login
@@ -139,7 +138,7 @@ app.post('/login', async (req, res) => {
 			} else {
 				req.session.user = user;
 				req.session.save();
-				res.redirect('/home');
+				res.redirect('/');
 			}
 		})
 		.catch(err => {
