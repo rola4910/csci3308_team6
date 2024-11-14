@@ -147,9 +147,9 @@ app.post('/login', async (req, res) => {
 });
 
 
-app.get('/register', (req, res) => {
-	res.render('pages/register');
-});
+// app.get('/register', (req, res) => {
+// 	res.redirect('pages/login');
+// });
 
 
 // Register
@@ -158,19 +158,71 @@ app.post('/register', async (req, res) => {
 	const hash = await bcrypt.hash(req.body.password, 10);
 
 	// To-DO: Insert username and hashed password into the 'users' table
-	const query = `INSERT INTO users (username, password) VALUES ($1, $2) RETURNING *`;
+	const query = `INSERT INTO users (username, password) VALUES ($1, $2) RETURNING *;`;
 	const values = [req.body.username, hash];
-	db.one(query, values)
-		.then(async data => {
-			res.redirect('/login');
-			console.log('Registration success.');
-		})
-		.catch(err => {
-			res.redirect('/register');
-			console.log(err);
+	const user = await db.one(query, values)
+	.then(data => {
+		res.redirect(302, '/login');
+		// res.status(200);
+		console.log("Data added successfully.");
+	  })
+	  .catch(err => {
+		// console.log(err);
+		res.status(400);
+		res.render('pages/register', {
+		  message: `Invalid input`
 		});
+	  });
 });
 
+// app.post('/register', async (req, res) => {
+//     try {
+//         // Hash the password
+//         const hash = await bcrypt.hash(req.body.password, 10);
+        
+//         // Insert the user data into the database
+//         const query = "INSERT INTO users (username, password) VALUES ($1, $2) RETURNING *";
+//         const values = [req.body.username, hash];
+//         const user = await db.one(query, values);
+
+//         console.log("Data added successfully.");
+        
+//         // Redirect to /login upon successful registration
+//         return res.redirect(302, '/login'); // Default 302 status code for redirect
+//     } catch (err) {
+//         console.error("Error during registration:", err);
+        
+//         // Render the registration page with an error message
+//         return res.status(400).render('pages/register', { message: 'Invalid input' });
+//     }
+// });
+
+// app.post('/register', async (req, res) => {
+//     try {
+//         // Hash the password
+//         // const hash = await bcrypt.hash(req.body.password, 10);
+        
+//         // // Insert the user data into the database
+//         // const query = "INSERT INTO users (username, password) VALUES ($1, $2) RETURNING *";
+//         // const values = [req.body.username, hash];
+//         // const user = await db.one(query, values);
+
+//         // console.log("Data added successfully:", user);
+        
+//         // Log just before redirecting
+//         console.log("Reached redirect line, redirecting to /login");
+//         return res.redirect(302, '/login');  // Default 302 status code for redirect
+//     } catch (err) {
+//         console.error("Error during registration:", err);
+        
+//         // Render the registration page with an error message
+//         return res.status(400).render('pages/register', { message: 'Invalid input' });
+//     }
+// });
+  
+// app.post('/register', (req, res) => {
+//     return res.redirect(302, '/login');
+// });
 
 app.get('/logout', (req, res) => {
 	req.session.destroy();
@@ -264,6 +316,16 @@ app.get('/getUserPlaylists', async (req, res) => {
 });
 
 // *****************************************************
+// TESTING
+// *****************************************************
+
+app.get('/welcome', (req, res) => {
+	res.json({status: 'success', message: 'Welcome!'});
+  });
+
+
+
+// *****************************************************
 // <!-- Section 5 : Helper Functions
 // *****************************************************
 
@@ -348,5 +410,6 @@ const monitorTokens = (req) => {
 // <!-- Section 6 : Start Server-->
 // *****************************************************
 // starting the server and keeping the connection open to listen for more requests
-app.listen(3000);
+module.exports = app.listen(3000); // Here we are exporting this server file also known as index.js, so that our test file can access it.
+
 console.log('Server is listening on port 3000');
