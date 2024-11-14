@@ -177,7 +177,6 @@ app.get('/logout', (req, res) => {
 	res.redirect('/login');
 });
 
-
 // temp login route for Spotify authorization
 app.get('/login2', function (req, res) {
 
@@ -192,7 +191,6 @@ app.get('/login2', function (req, res) {
 			state: state
 		}));
 });
-
 
 // callback function for auth
 app.get('/callback', async function (req, res) {
@@ -242,6 +240,52 @@ app.get('/callback', async function (req, res) {
 
 });
 
+// TEST QUERY AGAINST SPOTIFY API - FETCH USER PLAYLISTS
+app.get('/getUserPlaylists', async (req, res) => {
+	// Assume accessToken is obtained during the authorization flow and stored in session variable
+	const accessToken = req.session.access_token;
+
+	const userId = req.session.uid;
+
+	const options = {
+		headers: {
+			'Authorization': `Bearer ${accessToken}`
+		}
+	};
+
+	try {
+		const response = await axios.get(`https://api.spotify.com/v1/users/${userId}/playlists`, options);
+		console.log("\n----\n", response, "\n----\n");
+		res.send(response.data);
+	} catch (error) {
+		console.error(error);
+		res.status(error.response.status).send(error.response.data);
+	}
+});
+
+// *****************************************************
+// <!-- Section 5 : Helper Functions
+// *****************************************************
+
+// function to get user_id and populate, called in callback
+async function get_id(access_token) {
+	const options = {
+		headers: {
+			'Authorization': `Bearer ${access_token}`
+		}
+	};
+
+	try {
+		const user_obj = await axios.get(`https://api.spotify.com/v1/me`, options);
+		console.log("\n--get-id--\n", user_obj.data.id, "\n----\n")
+		return user_obj.data.id;
+	} catch (error) {
+		console.log(error);
+		return;
+	}
+}
+
+// refresh access and refresh tokens, called in monitorTokens()
 const getRefreshToken = async (req) => {
 	// refresh token that has been previously stored
 	const refreshToken = req.session.refresh_token;
@@ -277,50 +321,7 @@ const getRefreshToken = async (req) => {
 	}
 }
 
-// TEST QUERY AGAINST SPOTIFY API - FETCH USER PLAYLISTS
-app.get('/getUserPlaylists', async (req, res) => {
-	// Assume accessToken is obtained during the authorization flow and stored in session variable
-	// fetch accessToken dynamically
-	const accessToken = req.session.access_token;
-
-	// Replace {user_id} with the actual user ID you want to fetch playlists for
-	const userId = req.session.uid;
-
-	const options = {
-		headers: {
-			'Authorization': `Bearer ${accessToken}`
-		}
-	};
-
-	try {
-		const response = await axios.get(`https://api.spotify.com/v1/users/${userId}/playlists`, options);
-		console.log("\n----\n", response, "\n----\n");
-		res.send(response.data);
-	} catch (error) {
-		console.error(error);
-		res.status(error.response.status).send(error.response.data);
-	}
-});
-
-
-// function to get user_id and populate, called in callback
-async function get_id(access_token) {
-	const options = {
-		headers: {
-			'Authorization': `Bearer ${access_token}`
-		}
-	};
-
-	try {
-		const user_obj = await axios.get(`https://api.spotify.com/v1/me`, options);
-		console.log("\n--get-id--\n", user_obj.data.id, "\n----\n")
-		return user_obj.data.id;
-	} catch (error) {
-		console.log(error);
-		return;
-	}
-}
-
+// function to monitor tokens and refresh if about to expire
 const monitorTokens = (req) => {
 	// Check every minute if the access token is about to expire
 	setInterval(async () => {
@@ -328,8 +329,8 @@ const monitorTokens = (req) => {
 		const currentTime = Date.now();
 		const accessTokenExpiry = req.session.access_token_expiry * 1000; // convert token expiration time to milliseconds
 
-		// If the access token is about to expire (e.g., 5 minutes left)
-		if (accessTokenExpiry && (accessTokenExpiry - currentTime <= 30 * 1000)) {
+		// If the access token is about to expire (5 minutes left)
+		if (accessTokenExpiry && (accessTokenExpiry - currentTime <= 5 * 60 * 1000)) {
 			console.log('Access token is about to expire, refreshing...');
 
 			try {
@@ -339,11 +340,12 @@ const monitorTokens = (req) => {
 				console.error('Error refreshing token:', error);
 			}
 		}
-	}, 5* 1000); // Check every 60 seconds
+	}, 60 * 1000); // Check every 60 seconds
 };
 
+
 // *****************************************************
-// <!-- Section 5 : Start Server-->
+// <!-- Section 6 : Start Server-->
 // *****************************************************
 // starting the server and keeping the connection open to listen for more requests
 app.listen(3000);
