@@ -2,9 +2,15 @@
     font-family: "Times New Roman", Times, serif !important;
 }
 
-#select-button{
-    margin: 10px;
-    border-radius: 150px;
+#song-selector{
+    margin: 1px;
+    /* border-radius: 10px; */
+    /* border-style: dotted; */
+    border-color: rgb(139, 0, 139);
+    width: 1em; 
+    height: 1em; 
+    border-radius: 50%;
+
 }
 
 .chosen-playlist-dropdown{
