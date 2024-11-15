@@ -15,8 +15,6 @@ const axios = require('axios'); // To make HTTP requests from our server
 const crypto = require('crypto'); // Node.js crypto module
 const querystring = require('querystring');
 
-
-
 // *****************************************************
 // <!-- Section 2 : AUTHORIZATION HELPERS
 // *****************************************************
@@ -30,7 +28,7 @@ const generateRandomString = (length) => {
 
 const clientId = "c25f72fe66174e8ab75756ddc591301f";
 const redirectUri = "http://localhost:3000/callback";
-const scope = 'user-read-private user-read-email';
+const scope = 'user-read-private user-read-email playlist-read-private playlist-modify-public playlist-modify-private';
 const clientSecret = '07e098d9c6d7421494042196d2b322fd';
 
 // *****************************************************
@@ -231,6 +229,7 @@ app.get('/login', function (req, res) {
 });
 
 
+
 // login
 app.post('/login', async (req, res) => {
 	const query = `SELECT * FROM users WHERE username = $1`;
@@ -246,7 +245,7 @@ app.post('/login', async (req, res) => {
 			} else {
 				req.session.user = user;
 				req.session.save();
-				res.redirect('/home');
+				res.redirect('/');
 			}
 		})
 		.catch(err => {
@@ -287,7 +286,6 @@ app.get('/logout', (req, res) => {
 	res.redirect('/login');
 });
 
-
 // temp login route for Spotify authorization
 app.get('/login2', function (req, res) {
 
@@ -302,7 +300,6 @@ app.get('/login2', function (req, res) {
 			state: state
 		}));
 });
-
 
 // callback function for auth
 app.get('/callback', async function (req, res) {
@@ -330,28 +327,79 @@ app.get('/callback', async function (req, res) {
 			json: true
 		};
 
-		try {
-			// exchange authorization code for access token
-			const response = await axios.post(authOptions.url, authOptions.form, { headers: authOptions.headers });
-			req.session.access_token = response.data.access_token;
-			req.session.refresh_token = response.data.refresh_token;
-			res.redirect("/");
+		// exchange authorization code for access token
+		axios.post(authOptions.url, authOptions.form, { headers: authOptions.headers })
+			.then(response => {
+				req.session.access_token = response.data.access_token;
+				req.session.refresh_token = response.data.refresh_token;
+				req.session.access_token_expiry = response.data.expires_in;
+				req.session.start_time = Date.now();
+
+				res.redirect('/');
+				// res.send({
+				// 	access_token: req.session.access_token,
+				// 	refresh_token: req.session.refresh_token
+				// });
+			})
+			.catch(error => {
+				res.send(error.message);
+			});
+	}
+
+	monitorTokens(req);
+
+});
+
+// TEST QUERY AGAINST SPOTIFY API - FETCH USER PLAYLISTS
+app.get('/getUserPlaylists', async (req, res) => {
+	// Assume accessToken is obtained during the authorization flow and stored in session variable
+	const accessToken = req.session.access_token;
+
+	const userId = req.session.uid;
+
+	const options = {
+		headers: {
+			'Authorization': `Bearer ${accessToken}`
 		}
-		catch (error) {
-			res.send(error)
-		}
+	};
+
+	try {
+		const response = await axios.get(`https://api.spotify.com/v1/users/${userId}/playlists`, options);
+		console.log("\n----\n", response, "\n----\n");
+		res.send(response.data);
+	} catch (error) {
+		console.error(error);
+		res.status(error.response.status).send(error.response.data);
 	}
 });
 
+// *****************************************************
+// <!-- Section 5 : Helper Functions
+// *****************************************************
 
+// function to get user_id and populate, called in callback
+async function get_id(access_token) {
+	const options = {
+		headers: {
+			'Authorization': `Bearer ${access_token}`
+		}
+	};
+
+	try {
+		const user_obj = await axios.get(`https://api.spotify.com/v1/me`, options);
+		console.log("\n--get-id--\n", user_obj.data.id, "\n----\n")
+		return user_obj.data.id;
+	} catch (error) {
+		console.log(error);
+		return;
+	}
+}
+
+// refresh access and refresh tokens, called in monitorTokens()
 const getRefreshToken = async (req) => {
 	// refresh token that has been previously stored
 	const refreshToken = req.session.refresh_token;
 	const url = "https://accounts.spotify.com/api/token";
-
-	if (req.session.access_token) {
-		return req.session.access_token;
-	}
 
 	if (!refreshToken) {
 		throw new Error('Refresh token is missing, please reauthenticate user.');
@@ -377,60 +425,39 @@ const getRefreshToken = async (req) => {
 			req.session.refresh_token = response.data.refresh_token;
 		}
 
-		return response.data.access_token;
 	} catch (error) {
 		console.error('Error refreshing token:', error);
 		throw new Error('Failed to refresh token');
 	}
 }
 
-// TEST QUERY AGAINST SPOTIFY API - FETCH USER PLAYLISTS
-app.get('/getUserPlaylists', async (req, res) => {
-	// Assume accessToken is obtained during the authorization flow and stored in session variable
-	// fetch accessToken dynamically
-	const accessToken = req.session.access_token;
+// function to monitor tokens and refresh if about to expire
+const monitorTokens = (req) => {
+	// Check every minute if the access token is about to expire
+	setInterval(async () => {
+		console.log('Checking for expiry...')
+		const currentTime = Date.now();
+		const timeDiff = currentTime-req.session.start_time;
+		const accessTokenExpiry = req.session.access_token_expiry * 1000; // convert token expiration time to milliseconds
 
-	// Replace {user_id} with the actual user ID you want to fetch playlists for
-	const userId = req.session.uid;
+		// If the access token is about to expire (5 minutes left)
+		if (accessTokenExpiry && (accessTokenExpiry - timeDiff <= 5 * 60 * 1000)) {
+			console.log('Access token is about to expire, refreshing...');
 
-	const options = {
-		headers: {
-			'Authorization': `Bearer ${accessToken}`
+			try {
+				await getRefreshToken(req);  // Call the function to refresh the token
+				console.log('Access token refreshed successfully', req.session.access_token);
+				req.session.start_time = Date.now();
+			} catch (error) {
+				console.error('Error refreshing token:', error);
+			}
 		}
-	};
-
-	try {
-		const response = await axios.get(`https://api.spotify.com/v1/users/${userId}/playlists`, options);
-		console.log("\n----\n", response, "\n----\n");
-		res.send(response.data);
-	} catch (error) {
-		console.error(error);
-		res.status(error.response.status).send(error.response.data);
-	}
-});
-
-
-// function to get user_id and populate, called in callback
-async function get_id(access_token) {
-	const options = {
-		headers: {
-			'Authorization': `Bearer ${access_token}`
-		}
-	};
-
-	try {
-		const user_obj = await axios.get(`https://api.spotify.com/v1/me`, options);
-		console.log("\n--get-id--\n", user_obj.data.id, "\n----\n")
-		return user_obj.data.id;
-	} catch (error) {
-		console.log(error);
-		return;
-	}
-}
+	}, 60 * 1000); // Check every 60 seconds
+};
 
 
 // *****************************************************
-// <!-- Section 5 : Start Server-->
+// <!-- Section 6 : Start Server-->
 // *****************************************************
 // starting the server and keeping the connection open to listen for more requests
 app.listen(3000);
