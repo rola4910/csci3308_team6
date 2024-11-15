@@ -8,7 +8,11 @@ function colorChange(event) {
     }
 }
 
-// FIXME: still broken working on it
+// function selectedPlaylist(id) {
+//     console.log("Selected Playlist ID (Client):", id);
+//     window.location.href = `/makePlaylist?id=${id}`;
+// }
+
 // function setDraftPlaylistName(event) {
 //     console.log('TEST');
 //     const input = document.getElementById('playlist-name');
