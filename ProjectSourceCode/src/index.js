@@ -188,8 +188,18 @@ app.post('/getSongs', (req, res) => {
 		return task.batch([task.any(playlist_query), task.any(songs_query, playlistId)]);
 	})
 		.then(data => {
+			
 			const playlists = data[0];
 			const playlist_songs = data[1];
+
+			// Check if playlist_songs or playlists are empty and handle as an error
+			if (!playlists.length || !playlist_songs.length) {
+				console.error('No matching records found.');
+				return res.status(500).send('Error: No matching records found.');
+			}
+
+			console.log('playlist: ', playlists[0]);
+			console.log('songs: ', playlist_songs[0]);
 			// Render the currentPage with the playlists and playlist songs
 			if (currentPage === '/makePlaylist' || currentPage === '/playlistEditor' || currentPage === '/delete') {
 				res.render(`pages/${currentPage}`, {
@@ -199,7 +209,6 @@ app.post('/getSongs', (req, res) => {
 					currentPage: currentPage
 				});
 			}
-
 		})
 		.catch(err => {
 			console.error(err);

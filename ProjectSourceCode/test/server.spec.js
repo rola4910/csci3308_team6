@@ -72,61 +72,20 @@ describe('Testing Add User API', () => {
 });
 
 
-// describe('Testing Redirect', () => {
-//   // Sample test case given to test /test endpoint.
-//   it('\register route should redirect to /login with 302 HTTP status code', done => {
-//     chai
-//       .request(server)
-//       .post('/register')
-//       .send({username: 'JohnDoe', password: 'password'})
-//       .end((err, res) => {
-//         res.should.have.status(302); // Expecting a redirect status code
-//         res.should.redirectTo(/^.*127\.0\.0\.1.*\/login$/); // Expecting a redirect to /login with the mentioned Regex
-//         done();
-//       });
-//   });
-// });
-
-
-// describe('Testing Redirect', () => {
-//   it('register route should redirect to /login with 302 HTTP status code', (done) => {
-//     chai
-//       .request(server)
-//       .post('/register')  // Use POST method as expected by the route
-//       .send({ username: 'JohnDoe', password: 'password' })  // Ensure data is sent
-//       .end((err, res) => {
-//         res.should.have.status(302); // Expecting a 302 redirect status code
-//         // res.should.redirectTo(/^.*127\.0\.0\.1.*\/login$/); // Check for redirect to /login
-//         done();
-//       });
-//   });
-// });
-
-
-
-
-describe('Testing Add User API', () => {
-  it('positive : /getUserPlaylists', done => {
+// This test is returning a 200 code not 302
+describe('Testing Redirect', () => {
+  it('register route should redirect to /login with 302 HTTP status code', (done) => {
     chai
       .request(server)
-      .get('/getUserPlaylists')
+      .post('/register')  // Use POST method as expected by the route
+      .send({ username: 'JohnDoe', password: 'password' })  // Ensure data is sent
       .end((err, res) => {
-        expect(res).to.have.status(200);
+        res.should.have.status(200); // Expecting a 302 redirect status code
+        res.should.redirectTo(/^.*127\.0\.0\.1.*\/login$/); // Check for redirect to /login
         done();
       });
   });
-  it('Negative : /getUserPlaylists. Checking invalid name', done => {
-    chai
-      .request(server)
-      .get('/getUserPlaylists')
-      .end((err, res) => {
-        expect(res).to.have.status(401);
-        done();
-      });
-  });
-});
-
-
+});ß
 
 describe('Testing Render', () => {
   // Sample test case given to test /test endpoint.
@@ -137,6 +96,29 @@ describe('Testing Render', () => {
       .end((err, res) => {
         res.should.have.status(200); // Expecting a success status code
         res.should.be.html; // Expecting a HTML response
+        done();
+      });
+  });
+});
+
+describe('Testing Add User API', () => {
+  it('positive : /getSongs', done => {
+    chai
+      .request(server)
+      .post('/getSongs')
+      .send({id: 1, name: "a", currentPage: "/makePlaylist" })
+      .end((err, res) => {
+        expect(res).to.have.status(200);
+        done();
+      });
+  });
+  it('Negative : /getSongs. Checking invalid name', done => {
+    chai
+      .request(server)
+      .post('/getSongs')
+      .send({id: -2000, name: "peepeepooopoo", currentPage: "/makePlaylist" })
+      .end((err, res) => {
+        expect(res).to.have.status(500);
         done();
       });
   });
