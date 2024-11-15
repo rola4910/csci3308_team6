@@ -6,7 +6,6 @@ Brief Application Description:
 When sorting through playlists, users will be able to sort by categories such as decades, release date, date added to playlist, or alphabetically by artists or songs. Enhanced editing tools allow users to mass delete or add songs through filters including artist, date released, date added, and song genre. The visualizer will respond to the frequency, intensity, and rhythm of the music and aims to enhance the user experience while listening to songs.
 
 
-
 Contributors:
 - Bobby Lashway
 - Parker Secrest
@@ -33,3 +32,9 @@ How to run the tests:
 
 Link to the deployed application:
 - to be added
+
+
+Relase Notes:
+ - Added getUserPlaylist functionality
+ - User sessions now store tokens
+ - Added background token refresh functionality
