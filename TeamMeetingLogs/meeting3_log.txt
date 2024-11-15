@@ -4,3 +4,5 @@
 
 ^^ made get requests a post reques to fix security issues
 4. There is going to be a live action how to train your dragon? 
+5.Home page
+6.login page work
