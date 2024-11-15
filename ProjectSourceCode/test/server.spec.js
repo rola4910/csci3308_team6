@@ -85,7 +85,7 @@ describe('Testing Redirect', () => {
         done();
       });
   });
-});ß
+});
 
 describe('Testing Render', () => {
   // Sample test case given to test /test endpoint.
