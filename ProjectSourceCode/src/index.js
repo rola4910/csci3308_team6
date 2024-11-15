@@ -11,7 +11,7 @@ const pgp = require('pg-promise')(); // To connect to the Postgres DB from the n
 const bodyParser = require('body-parser');
 const session = require('express-session'); // To set the session object. To store or access session data, use the `req.session`, which is (generally) serialized as JSON by the store.
 const bcrypt = require('bcryptjs'); //  To hash passwords
-const axios = require('axios'); // To make HTTP requests from our server. We'll learn more about it in Part C.
+const axios = require('axios'); // To make HTTP requests from our server
 const crypto = require('crypto'); // Node.js crypto module
 const querystring = require('querystring');
 
@@ -103,20 +103,129 @@ app.get('/', async function (req, res) {
 	res.render('pages/login');
 });
 
+app.get('/features', (req, res) => {
+	res.render('pages/features');
+});
+
+app.get('/makePlaylist', (req, res) => {
+	const playlist_query = 'SELECT * FROM playlists;';
+	const currentPage = req.path;
+	console.log(currentPage);
+
+	db.any(playlist_query)
+		.then(data => {
+			console.log(data[1].name)
+			const playlists = data;
+			// Render the makePlaylist page with the playlists and playlist songs
+			res.render('pages/makePlaylist', {
+				playlists: playlists,
+				currentPage: currentPage
+			});
+		})
+		.catch(err => {
+			console.error(err);
+			res.status(500).send('Error retrieving playlists');
+		});
+
+
+});
 
 app.get('/playlistEditor', (req, res) => {
-	res.render('pages/playlistEditor');
+	const playlist_query = 'SELECT * FROM playlists;';
+	const currentPage = req.path;
+	console.log(currentPage);
+
+	db.any(playlist_query)
+		.then(data => {
+			console.log(data[1].name)
+			const playlists = data;
+			// Render the makePlaylist page with the playlists and playlist songs
+			res.render('pages/playlistEditor', {
+				playlists: playlists,
+				currentPage: currentPage
+			});
+		})
+		.catch(err => {
+			console.error(err);
+			res.status(500).send('Error retrieving playlists');
+		});
 });
 
+app.get('/delete', (req, res) => {
+	const playlist_query = 'SELECT * FROM playlists;';
+	const currentPage = req.path;
+	console.log(currentPage);
 
-app.get('/makePlaylist', function (req, res) {
-    res.render('pages/makePlaylist');
+	db.any(playlist_query)
+		.then(data => {
+			console.log(data[1].name)
+			const playlists = data;
+			// Render the makePlaylist page with the playlists and playlist songs
+			res.render('pages/delete', {
+				playlists: playlists,
+				currentPage: currentPage
+			});
+		})
+		.catch(err => {
+			console.error(err);
+			res.status(500).send('Error retrieving playlists');
+		});
 });
 
+app.post('/getSongs', (req, res) => {
 
+	const playlist_query = 'SELECT * FROM playlists;';
+	const songs_query = 'SELECT * FROM playlist_songs WHERE playlist_id = $1;';
+	const playlistId = req.body.id; // Retrieve the id from the query parameters
+	const playlistName = req.body.name;
+	const currentPage = req.body.currentPage; // Gets the path of the current request
+	console.log('current page: ', currentPage);
+
+	// console.log('Selected Playlist ID:', playlistId);
+	// console.log('Selected Playlist name:', playlistName);
+
+	db.task('get-everything', task => {
+		return task.batch([task.any(playlist_query), task.any(songs_query, playlistId)]);
+	})
+		.then(data => {
+			const playlists = data[0];
+			const playlist_songs = data[1];
+			// Render the currentPage with the playlists and playlist songs
+			if (currentPage === '/makePlaylist' || currentPage === '/playlistEditor' || currentPage === '/delete') {
+				res.render(`pages/${currentPage}`, {
+					playlists: playlists,
+					playlist_songs: playlist_songs,
+					playlistName: playlistName,
+					currentPage: currentPage
+				});
+			}
+
+		})
+		.catch(err => {
+			console.error(err);
+			res.status(500).send('Error retrieving playlists and songs');
+		});
+});
+
+app.get('/makeNewPlaylist', (req, res) => {
+	const newPlaylistName = req.body.newName;
+	const input = document.getElementById('playlist-name');
+    const title = document.getElementById('playlist-title');
+
+	if (newPlaylistName) {
+        // Hide the input field and show the title with the entered name
+        input.classList.add('d-none');
+        title.classList.remove('d-none');
+        title.textContent = playlistName;
+    }
+	res.render('pages/makePlaylist', {newPlaylistName: newPlaylistName});
+	// INSERT NEW PLAYLIST TRACKS INTO db
+});
 // app.post('/login', (req, res) => {
+
+
 app.get('/login', function (req, res) {
-	res.render('pages/login');
+	res.render('pages/login', {bodyId: 'login-page'});
 });
 
 
@@ -276,6 +385,7 @@ app.get('/callback', async function (req, res) {
 				req.session.access_token = response.data.access_token;
 				req.session.refresh_token = response.data.refresh_token;
 				req.session.access_token_expiry = response.data.expires_in;
+				req.session.start_time = Date.now();
 
 				res.redirect('/');
 				// res.send({
@@ -389,15 +499,17 @@ const monitorTokens = (req) => {
 	setInterval(async () => {
 		console.log('Checking for expiry...')
 		const currentTime = Date.now();
+		const timeDiff = currentTime-req.session.start_time;
 		const accessTokenExpiry = req.session.access_token_expiry * 1000; // convert token expiration time to milliseconds
 
 		// If the access token is about to expire (5 minutes left)
-		if (accessTokenExpiry && (accessTokenExpiry - currentTime <= 5 * 60 * 1000)) {
+		if (accessTokenExpiry && (accessTokenExpiry - timeDiff <= 5 * 60 * 1000)) {
 			console.log('Access token is about to expire, refreshing...');
 
 			try {
 				await getRefreshToken(req);  // Call the function to refresh the token
 				console.log('Access token refreshed successfully', req.session.access_token);
+				req.session.start_time = Date.now();
 			} catch (error) {
 				console.error('Error refreshing token:', error);
 			}

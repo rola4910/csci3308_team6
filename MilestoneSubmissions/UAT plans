@@ -1,11 +1,63 @@
-Create 1 document per team, within the milestones folder in the project directory, that describes how, at least, 3 features within your finished product will be tested.
+Delete Playlist Page Testing Plan
+- Acceptance Criteria
+    - User can click on playlist dropdown and view playlists
+    - User can select playlists
+        - After selection, user can delete using the delete button
+        - Can cancel selection by clicking cancel
+    - When deleted, songs inside playlist will be removed
+- Testing Data
+    - Users Spotify playlist
+        - Playlists comprised of songs
+        - Empty playlists
+        - Playlists with podcasts and episodes
+- Testing Environment
+    - Local Host
+- Test Results
+    - Dropdown should display all of users playlists when clicked
+    - Selected playlist highlighted 
+    - Delete button closes dropdown and potentially refreshes page or updates to remove the playlist?
+- User acceptance testers
+    - Development team using their own spotify playlists to test
 
-The test plans should include specific test cases (user acceptance test cases) that describe the data and the user activity that will be executed in order to verify proper functionality of the feature.
+Login Page Testing Plan
+- Acceptance Criteria
+    - User cannot submit form without proper credentials:
+        - Username/Email
+        - Password
+    - User can type username/email and password
+    - Password is hidden
+    - Provide an error message when credentials don’t match with a users info
+    - When submitted, user will be sent to a playlist page
+- Testing data
+    - Spotify Usernames, emails, and passwords
+        - Incorrect ones as well
+- Testing environment
+    - Local Host
+- Test Results
+    - Should redirect to a playlist page when credentials match
+    - Should output an error message when credentials aren’t found
+    - Should stay on page until submit button is clicked
+User acceptance testers
+    - Development team using their own spotify credentials to log in
 
-The test plans should include a description of the test data that will be used to test the feature.
-
-The test plans should include a description of the test environment ( localhost / cloud ) that will be used to test the feature.
-
-The test plans should include a description of the test results that will be used to test the feature.
-
-The test plan should include information about the user acceptance testers
+Make Playlist Page Testing Plan
+- Acceptance Criteria
+    - User can choose which playlist they want to choose songs from
+    - User can name new playlists
+    - User can sort/filter playlist with criteria such as release date
+    - For each song, artist and release date will be displayed
+- Testing Data
+    - Users Spotify playlists
+        - Playlists comprised of songs
+        - Empty playlists
+        - Playlists with podcasts and episodes
+- Testing Environment
+    - Local Host
+- Test Results
+    - When dropdown is selected, users playlists will be displayed
+        - Once selected, option menu will display where users can see songs, artists and release date 
+        - Users can select each row and add that song to the playlist on the right
+    - Users can name playlist and name appears in Spotify
+    - Filter can remove songs from selected playlist based on criteria
+- User acceptance testers
+    - Development team using their own spotify credentials to log in

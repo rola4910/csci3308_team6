@@ -1,24 +1,106 @@
-#login-card-title{
+#login-card-title {
     font-family: "Times New Roman", Times, serif !important;
 }
 
-#song-selector{
-    margin: 1px;
-    /* border-radius: 10px; */
-    /* border-style: dotted; */
-    border-color: rgb(139, 0, 139);
-    width: 1em; 
-    height: 1em; 
+.song-selector {
+    margin: 10px;
+    width: 1em;
+    height: 1em;
     border-radius: 50%;
 
 }
 
-.chosen-playlist-dropdown{
+#chosen-playlist-dropdown {
     margin: 5px;
 }
 
-#chosen-playlist-card{
+#chosen-playlist-card {
     margin: 5px;
 }
 
+#delete-dropdown {
+    margin-bottom: 50px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 10px;
+}
 
+#delete-cancel-btns {
+    display: flex;
+    justify-content: center;
+    gap: 40px; /* Adjust the gap value as needed */
+}
+
+#delete-btn, #cancel-btn {
+    padding: 20px 20px;
+    border: none;
+    background-color: transparent;
+    font-size: 36px;
+    /* Add any other styling you need */
+}
+
+#song-list-group{
+    justify-content: left;
+}
+
+/* LOGIN PAGE */
+
+#login-page{
+    /* background-image: linear-gradient(rgb(30 215 96), darkgreen); */
+
+    background-image: linear-gradient(black, grey);
+}
+#login-div{
+    margin: auto;
+    padding: 10px;
+}
+#login-txt{
+    font-size: 20px;
+    font-family: 'Minecraft', sans-serif;
+    color: rgb(30 215 96);
+}
+#login-btn{
+    border: none;
+    background-color: transparent;  
+}
+
+
+/* TESTING FLAME ANIMATION */
+@keyframes flicker {
+    0% {
+        transform: scale(1) rotate(0deg) translateY(0px);
+        opacity: 1;
+    }
+    25% {
+        transform: scale(1.05) rotate(1deg) translateY(-1px);
+        opacity: 0.9;
+    }
+    50% {
+        transform: scale(0.98) rotate(-1deg) translateY(2px);
+        opacity: 1;
+    }
+    75% {
+        transform: scale(1.03) rotate(-1deg) translateY(-1px);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(1) rotate(0deg) translateY(0px);
+        opacity: 1;
+    }
+}
+
+
+.flame {
+    animation: stretchTop 1.5s infinite ease-in-out alternate;
+    transform-origin: center bottom;
+}
+
+
+
+@keyframes stretchTop {
+    0% { transform: scaleY(1); }
+    25% { transform: scaleY(1.05); }
+    50% { transform: scaleY(1.1); }
+    75% { transform: scaleY(1.08); }
+    100% { transform: scaleY(1); }
+}
