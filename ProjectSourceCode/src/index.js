@@ -365,11 +365,11 @@ app.get('/getUserPlaylists', async (req, res) => {
 
 	try {
 		const response = await axios.get(`https://api.spotify.com/v1/users/${userId}/playlists`, options);
-		// console.log("\n----\n", response, "\n----\n");
+		console.log("\n----\n", response.data, "\n----\n");
 		// res.send(response.data);
 		const num_playlists = response.data.total;
-		const data = addPlaylistsToDB(num_playlists, response.data);
-		res.send(data)
+		addPlaylistsToDB(num_playlists, response.data, req.session.access_token);
+		res.redirect('/');
 
 	} catch (error) {
 		console.error(error);
@@ -460,27 +460,95 @@ const monitorTokens = (req) => {
 };
 
 
-function addPlaylistsToDB(num_playlists, response) {
-	console.log(num_playlists);
+function addPlaylistsToDB(num_playlists, response, accessToken) {
+	// console.log(num_playlists);
 	for (var i = 0; i < num_playlists; i++) {
 		const curr_playlist = response.items[i];
-		const name = curr_playlist.name
-		const playlist_id = curr_playlist.id
-		const public = curr_playlist.public
+		if ((curr_playlist.description).includes("Blend")) {
+			continue;
+		}
+		else {
+			const name = curr_playlist.name
+			const playlist_id = curr_playlist.id
+			const public = curr_playlist.public
 
-		// now build query
-		const query = `INSERT INTO playlists (name, playlist_id, public) VALUES ('${name}', '${playlist_id}', ${public}) RETURNING *;`;
-		db.one(query)
-		.then(data => {
-			console.log(data);
-			return data;
-		})
-		.catch(err => {
-			console.log(err.message);
-			return -1;
-		})
+			// now build query
+			const query = `INSERT INTO playlists (name, playlist_id, public) VALUES ('${name}', '${playlist_id}', ${public}) RETURNING *;`;
+			db.one(query)
+			.then(data => {
+				// playlist has been inserted. now to add songs from this specific playlist
+				addSongsFromPlaylist((parseInt(i+1),10), playlist_id, accessToken);
+				return;
+			})
+			.catch(err => {
+				console.log(err.message);
+				return;
+			})
+		}
 	}
 }
+
+
+async function addSongsFromPlaylist(playlist_num, playlistId, accessToken) {
+	const options = {
+		headers: {
+			'Authorization': `Bearer ${accessToken}`
+		}
+	};
+
+	try {
+		const response = await axios.get(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, options);
+		// console.log(response.data);
+		const num_songs = response.data.total;
+		if (num_songs <= 100) {
+			for (var i = 0; i < num_songs; i++) {	
+				const curr_song = response.data.items[i].track;
+
+				var name = curr_song.name;
+				if ((name).includes("'")) {
+					name = name.replace(/'/g, "''");
+				}
+
+				const duration = parseInt(curr_song.duration_ms, 10);
+				var first_artist = curr_song.artists[0].name;
+				if ((first_artist).includes("'")) {
+					first_artist = first_artist.replace(/'/g, "''");
+				}
+
+				const song_id = curr_song.id;
+				var album_name = curr_song.album.name;
+				if ((album_name).includes("'")) {
+					album_name = album_name.replace(/'/g, "''");
+
+				}
+
+				const album_release = curr_song.album.release_date;
+				const added_at = response.data.items[i].added_at;
+				const popularity = parseInt(curr_song.popularity, 10);
+				
+				const query = `INSERT INTO playlist_songs 
+				                   (name, duration, artist, song_id, album_name, album_release, added_at, popularity) 
+								   VALUES
+								   ('${name}', ${duration}, '${first_artist}', '${song_id}', '${album_name}', '${album_release}', '${added_at}', ${popularity})
+							   RETURNING *;`;
+				db.one(query)
+				.then(data => {
+					return 1;
+				})
+				.catch(err => {
+					console.log(err.message);
+					return err;
+				})
+			}
+		}
+		// console.log("\n");
+
+	} catch (error) {
+		console.error(error);
+		return error;
+	}
+}
+
 
 
 // *****************************************************
