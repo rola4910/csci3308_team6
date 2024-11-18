@@ -465,9 +465,14 @@ const monitorTokens = (req) => {
 function addPlaylistsToDB(num_playlists, response, accessToken) {
 	// console.log(num_playlists);
 	for (var i = 0; i < num_playlists; i++) {
+		if (i == 100) {
+			break;
+		}
 		const curr_playlist = response.items[i];
-		if ((curr_playlist.description).includes("Blend")) {
-			continue;
+		if (curr_playlist.description != null) {
+			if ((curr_playlist.description).includes("Blend")) {
+				continue;
+			}
 		}
 		else {
 			var name = curr_playlist.name
