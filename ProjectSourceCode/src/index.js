@@ -207,21 +207,20 @@ app.post('/getSongs', (req, res) => {
 		});
 });
 
-app.get('/makeNewPlaylist', (req, res) => {
+app.post('/makeNewPlaylist', (req, res) => {
 	const newPlaylistName = req.body.newName;
-	const input = document.getElementById('playlist-name');
-    const title = document.getElementById('playlist-title');
-
-	if (newPlaylistName) {
-        // Hide the input field and show the title with the entered name
-        input.classList.add('d-none');
-        title.classList.remove('d-none');
-        title.textContent = playlistName;
-    }
 	res.render('pages/makePlaylist', {newPlaylistName: newPlaylistName});
-	// INSERT NEW PLAYLIST TRACKS INTO db
+	console.log(newPlaylistName);
+	// TODO: INSERT NEW PLAYLIST TRACKS INTO db
 });
-// app.post('/login', (req, res) => {
+
+app.post('/addSongs', (req, res) => {
+	const selectedSongIDs = req.body.id;
+	console.log('Selected Song IDs:', selectedSongIDs);
+	res.render('pages/makePlaylist', {selectedSongIDs: selectedSongIDs});
+
+	//ADD SONGS TO DRAFT PLAYLIST
+})
 
 
 app.get('/login', function (req, res) {

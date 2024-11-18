@@ -1,12 +1,14 @@
 <div id="new-playlist-card" >
     <div class="card">
         <div class="card-body">
-            <form action="/makeNewPlaylist" method="GET">
+            {{#if newPlaylistName}}
+            <h3 id="playlist-title">{{newPlaylistName}}</h3> <!-- Title element hidden initially -->
+            {{else}}
+            <form action="/makeNewPlaylist" method="POST">
                 <input autocomplete="off" type="text" class="form-control mb-3"
-                    id="playlist-name"
-                    name="newName" placeholder="playlist Name">
+                    id="playlist-name" name="newName" placeholder="playlist Name">
             </form>
-            <h3 id="playlist-title" class="d-none">{{newPlaylistName}}</h3> <!-- Title element hidden initially -->
+            {{/if}}
             <ul class="list-group list-group-flush">
                 <li class="list-group-item d-flex justify-content-between">
                     <span>Song</span>
