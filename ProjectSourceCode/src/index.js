@@ -477,7 +477,7 @@ function addPlaylistsToDB(num_playlists, response, accessToken) {
 			db.one(query)
 			.then(data => {
 				// playlist has been inserted. now to add songs from this specific playlist
-				addSongsFromPlaylist((parseInt(i+1),10), playlist_id, accessToken);
+				addSongsFromPlaylist(playlist_id, accessToken);
 				return;
 			})
 			.catch(err => {
@@ -489,7 +489,7 @@ function addPlaylistsToDB(num_playlists, response, accessToken) {
 }
 
 
-async function addSongsFromPlaylist(playlist_num, playlistId, accessToken) {
+async function addSongsFromPlaylist(playlistId, accessToken) {
 	const options = {
 		headers: {
 			'Authorization': `Bearer ${accessToken}`
@@ -498,7 +498,6 @@ async function addSongsFromPlaylist(playlist_num, playlistId, accessToken) {
 
 	try {
 		const response = await axios.get(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, options);
-		// console.log(response.data);
 		const num_songs = response.data.total;
 		if (num_songs <= 100) {
 			for (var i = 0; i < num_songs; i++) {	
@@ -527,9 +526,9 @@ async function addSongsFromPlaylist(playlist_num, playlistId, accessToken) {
 				const popularity = parseInt(curr_song.popularity, 10);
 				
 				const query = `INSERT INTO playlist_songs 
-				                   (name, duration, artist, song_id, album_name, album_release, added_at, popularity) 
+				                   (name, duration, artist, song_id, album_name, album_release, added_at, popularity, playlist_id) 
 								   VALUES
-								   ('${name}', ${duration}, '${first_artist}', '${song_id}', '${album_name}', '${album_release}', '${added_at}', ${popularity})
+								   ('${name}', ${duration}, '${first_artist}', '${song_id}', '${album_name}', '${album_release}', '${added_at}', ${popularity}, '${playlistId}')
 							   RETURNING *;`;
 				db.one(query)
 				.then(data => {
