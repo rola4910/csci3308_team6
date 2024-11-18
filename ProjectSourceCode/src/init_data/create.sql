@@ -16,11 +16,12 @@ CREATE TABLE playlist_songs (
     album_name VARCHAR(100) NOT NULL,
     album_release VARCHAR(100) NOT NULL,
     added_at VARCHAR(100),
-    popularity INTEGER NOT NULL
+    popularity INTEGER NOT NULL,
+    playlist_id INTEGER REFERENCES playlists(id)
 );
 
 DROP TABLE IF EXISTS users;
 CREATE TABLE users (
-    username VARCHAR(100) NOT NULL,
+    username VARCHAR(100) NOT NULL CHECK (username ~ '^[^0-9]+$'),
     password VARCHAR(100) NOT NULL
 );

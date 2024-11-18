@@ -11,7 +11,7 @@ const pgp = require('pg-promise')(); // To connect to the Postgres DB from the n
 const bodyParser = require('body-parser');
 const session = require('express-session'); // To set the session object. To store or access session data, use the `req.session`, which is (generally) serialized as JSON by the store.
 const bcrypt = require('bcryptjs'); //  To hash passwords
-const axios = require('axios'); // To make HTTP requests from our server. We'll learn more about it in Part C.
+const axios = require('axios'); // To make HTTP requests from our server
 const crypto = require('crypto'); // Node.js crypto module
 const querystring = require('querystring');
 
@@ -103,20 +103,138 @@ app.get('/', async function (req, res) {
 	res.render('pages/login');
 });
 
+app.get('/features', (req, res) => {
+	res.render('pages/features');
+});
+
+app.get('/makePlaylist', (req, res) => {
+	const playlist_query = 'SELECT * FROM playlists;';
+	const currentPage = req.path;
+	console.log(currentPage);
+
+	db.any(playlist_query)
+		.then(data => {
+			console.log(data[1].name)
+			const playlists = data;
+			// Render the makePlaylist page with the playlists and playlist songs
+			res.render('pages/makePlaylist', {
+				playlists: playlists,
+				currentPage: currentPage
+			});
+		})
+		.catch(err => {
+			console.error(err);
+			res.status(500).send('Error retrieving playlists');
+		});
+
+
+});
 
 app.get('/playlistEditor', (req, res) => {
-	res.render('pages/playlistEditor');
+	const playlist_query = 'SELECT * FROM playlists;';
+	const currentPage = req.path;
+	console.log(currentPage);
+
+	db.any(playlist_query)
+		.then(data => {
+			console.log(data[1].name)
+			const playlists = data;
+			// Render the makePlaylist page with the playlists and playlist songs
+			res.render('pages/playlistEditor', {
+				playlists: playlists,
+				currentPage: currentPage
+			});
+		})
+		.catch(err => {
+			console.error(err);
+			res.status(500).send('Error retrieving playlists');
+		});
 });
 
+app.get('/delete', (req, res) => {
+	const playlist_query = 'SELECT * FROM playlists;';
+	const currentPage = req.path;
+	console.log(currentPage);
 
-app.get('/makePlaylist', function (req, res) {
-    res.render('pages/makePlaylist');
+	db.any(playlist_query)
+		.then(data => {
+			console.log(data[1].name)
+			const playlists = data;
+			// Render the makePlaylist page with the playlists and playlist songs
+			res.render('pages/delete', {
+				playlists: playlists,
+				currentPage: currentPage
+			});
+		})
+		.catch(err => {
+			console.error(err);
+			res.status(500).send('Error retrieving playlists');
+		});
 });
 
+app.post('/getSongs', (req, res) => {
 
+	const playlist_query = 'SELECT * FROM playlists;';
+	const songs_query = 'SELECT * FROM playlist_songs WHERE playlist_id = $1;';
+	const playlistId = req.body.id; // Retrieve the id from the query parameters
+	const playlistName = req.body.name;
+	const currentPage = req.body.currentPage; // Gets the path of the current request
+	console.log('current page: ', currentPage);
+
+	// console.log('Selected Playlist ID:', playlistId);
+	// console.log('Selected Playlist name:', playlistName);
+
+	db.task('get-everything', task => {
+		return task.batch([task.any(playlist_query), task.any(songs_query, playlistId)]);
+	})
+		.then(data => {
+			
+			const playlists = data[0];
+			const playlist_songs = data[1];
+
+			// Check if playlist_songs or playlists are empty and handle as an error
+			if (!playlists.length || !playlist_songs.length) {
+				console.error('No matching records found.');
+				return res.status(500).send('Error: No matching records found.');
+			}
+
+			console.log('playlist: ', playlists[0]);
+			console.log('songs: ', playlist_songs[0]);
+			// Render the currentPage with the playlists and playlist songs
+			if (currentPage === '/makePlaylist' || currentPage === '/playlistEditor' || currentPage === '/delete') {
+				res.render(`pages/${currentPage}`, {
+					playlists: playlists,
+					playlist_songs: playlist_songs,
+					playlistName: playlistName,
+					currentPage: currentPage
+				});
+			}
+		})
+		.catch(err => {
+			console.error(err);
+			res.status(500).send('Error retrieving playlists and songs');
+		});
+});
+
+app.get('/makeNewPlaylist', (req, res) => {
+	const newPlaylistName = req.body.newName;
+	const input = document.getElementById('playlist-name');
+    const title = document.getElementById('playlist-title');
+
+	if (newPlaylistName) {
+        // Hide the input field and show the title with the entered name
+        input.classList.add('d-none');
+        title.classList.remove('d-none');
+        title.textContent = playlistName;
+    }
+	res.render('pages/makePlaylist', {newPlaylistName: newPlaylistName});
+	// INSERT NEW PLAYLIST TRACKS INTO db
+});
 // app.post('/login', (req, res) => {
+
+
 app.get('/login', function (req, res) {
-	res.render('pages/login');
+	res.render('pages/login', {bodyId: 'login-page'});
 });
 
 
@@ -147,9 +265,9 @@ app.post('/login', async (req, res) => {
 });
 
 
-app.get('/register', (req, res) => {
-	res.render('pages/register');
-});
+// app.get('/register', (req, res) => {
+// 	res.redirect('pages/login');
+// });
 
 
 // Register
@@ -158,19 +276,71 @@ app.post('/register', async (req, res) => {
 	const hash = await bcrypt.hash(req.body.password, 10);
 
 	// To-DO: Insert username and hashed password into the 'users' table
-	const query = `INSERT INTO users (username, password) VALUES ($1, $2) RETURNING *`;
+	const query = `INSERT INTO users (username, password) VALUES ($1, $2) RETURNING *;`;
 	const values = [req.body.username, hash];
-	db.one(query, values)
-		.then(async data => {
-			res.redirect('/login');
-			console.log('Registration success.');
-		})
-		.catch(err => {
-			res.redirect('/register');
-			console.log(err);
+	const user = await db.one(query, values)
+	.then(data => {
+		res.redirect(302, '/login');
+		// res.status(200);
+		console.log("Data added successfully.");
+	  })
+	  .catch(err => {
+		// console.log(err);
+		res.status(400);
+		res.render('pages/register', {
+		  message: `Invalid input`
 		});
+	  });
 });
 
+// app.post('/register', async (req, res) => {
+//     try {
+//         // Hash the password
+//         const hash = await bcrypt.hash(req.body.password, 10);
+        
+//         // Insert the user data into the database
+//         const query = "INSERT INTO users (username, password) VALUES ($1, $2) RETURNING *";
+//         const values = [req.body.username, hash];
+//         const user = await db.one(query, values);
+
+//         console.log("Data added successfully.");
+        
+//         // Redirect to /login upon successful registration
+//         return res.redirect(302, '/login'); // Default 302 status code for redirect
+//     } catch (err) {
+//         console.error("Error during registration:", err);
+        
+//         // Render the registration page with an error message
+//         return res.status(400).render('pages/register', { message: 'Invalid input' });
+//     }
+// });
+
+// app.post('/register', async (req, res) => {
+//     try {
+//         // Hash the password
+//         // const hash = await bcrypt.hash(req.body.password, 10);
+        
+//         // // Insert the user data into the database
+//         // const query = "INSERT INTO users (username, password) VALUES ($1, $2) RETURNING *";
+//         // const values = [req.body.username, hash];
+//         // const user = await db.one(query, values);
+
+//         // console.log("Data added successfully:", user);
+        
+//         // Log just before redirecting
+//         console.log("Reached redirect line, redirecting to /login");
+//         return res.redirect(302, '/login');  // Default 302 status code for redirect
+//     } catch (err) {
+//         console.error("Error during registration:", err);
+        
+//         // Render the registration page with an error message
+//         return res.status(400).render('pages/register', { message: 'Invalid input' });
+//     }
+// });
+  
+// app.post('/register', (req, res) => {
+//     return res.redirect(302, '/login');
+// });
 
 app.get('/logout', (req, res) => {
 	req.session.destroy();
@@ -265,6 +435,16 @@ app.get('/getUserPlaylists', async (req, res) => {
 });
 
 // *****************************************************
+// TESTING
+// *****************************************************
+
+app.get('/welcome', (req, res) => {
+	res.json({status: 'success', message: 'Welcome!'});
+  });
+
+
+
+// *****************************************************
 // <!-- Section 5 : Helper Functions
 // *****************************************************
 
@@ -351,5 +531,6 @@ const monitorTokens = (req) => {
 // <!-- Section 6 : Start Server-->
 // *****************************************************
 // starting the server and keeping the connection open to listen for more requests
-app.listen(3000);
+module.exports = app.listen(3000); // Here we are exporting this server file also known as index.js, so that our test file can access it.
+
 console.log('Server is listening on port 3000');
