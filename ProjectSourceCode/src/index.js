@@ -375,7 +375,7 @@ app.get('/getUserPlaylists', async (req, res) => {
 
 	} catch (error) {
 		console.error(error);
-		res.status(error.response.status).send(error.response.data);
+		res.send(error.message);
 	}
 });
 
@@ -470,7 +470,10 @@ function addPlaylistsToDB(num_playlists, response, accessToken) {
 			continue;
 		}
 		else {
-			const name = curr_playlist.name
+			var name = curr_playlist.name
+			if ((name).includes("'")) {
+				name = name.replace(/'/g, "''");
+			}
 			const playlist_id = curr_playlist.id
 			const public = curr_playlist.public
 

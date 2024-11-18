@@ -1,7 +1,7 @@
 DROP TABLE IF EXISTS playlists;
 CREATE TABLE playlists (
     -- id SERIAL PRIMARY KEY,  -- incrementing number to be used to link tables
-    name VARCHAR(100) NOT NULL,
+    name VARCHAR(256) NOT NULL,
     playlist_id VARCHAR(32) PRIMARY KEY NOT NULL, -- used for API calls
     public BOOLEAN NOT NULL
 );
