@@ -110,12 +110,13 @@ app.get('/features', (req, res) => {
 app.get('/makePlaylist', (req, res) => {
 	const playlist_query = 'SELECT * FROM playlists;';
 	const currentPage = req.path;
-	console.log(currentPage);
+	// console.log(currentPage);
 
 	db.any(playlist_query)
 		.then(data => {
-			console.log(data[1].name)
+			// console.log("makePlaylist:", data[1].name)
 			const playlists = data;
+			// console.log("makePlaylists query result:", playlists);
 			// Render the makePlaylist page with the playlists and playlist songs
 			res.render('pages/makePlaylist', {
 				playlists: playlists,
@@ -133,11 +134,11 @@ app.get('/makePlaylist', (req, res) => {
 app.get('/playlistEditor', (req, res) => {
 	const playlist_query = 'SELECT * FROM playlists;';
 	const currentPage = req.path;
-	console.log(currentPage);
+	// console.log(currentPage);
 
 	db.any(playlist_query)
 		.then(data => {
-			console.log(data[1].name)
+			// console.log("playlistEditor:", data[1].name)
 			const playlists = data;
 			// Render the makePlaylist page with the playlists and playlist songs
 			res.render('pages/playlistEditor', {
@@ -154,11 +155,11 @@ app.get('/playlistEditor', (req, res) => {
 app.get('/delete', (req, res) => {
 	const playlist_query = 'SELECT * FROM playlists;';
 	const currentPage = req.path;
-	console.log(currentPage);
+	// console.log(currentPage);
 
 	db.any(playlist_query)
 		.then(data => {
-			console.log(data[1].name)
+			// console.log("delete:", data[1].name)
 			const playlists = data;
 			// Render the makePlaylist page with the playlists and playlist songs
 			res.render('pages/delete', {
@@ -174,12 +175,13 @@ app.get('/delete', (req, res) => {
 
 app.post('/getSongs', (req, res) => {
 
-	const playlist_query = 'SELECT * FROM playlists;';
-	const songs_query = 'SELECT * FROM playlist_songs WHERE playlist_id = $1;';
 	const playlistId = req.body.id; // Retrieve the id from the query parameters
+	// console.log("chosen id:", playlistId);
 	const playlistName = req.body.name;
 	const currentPage = req.body.currentPage; // Gets the path of the current request
-	console.log('current page: ', currentPage);
+	const playlist_query = `SELECT * FROM playlists;`;
+	const songs_query = `SELECT * FROM playlist_songs WHERE playlist_id = '${playlistId}';`;
+	// console.log('current page: ', currentPage);
 
 	// console.log('Selected Playlist ID:', playlistId);
 	// console.log('Selected Playlist name:', playlistName);
@@ -190,6 +192,7 @@ app.post('/getSongs', (req, res) => {
 		.then(data => {
 			const playlists = data[0];
 			const playlist_songs = data[1];
+			// console.log("queried songs:", playlist_songs);
 			// Render the currentPage with the playlists and playlist songs
 			if (currentPage === '/makePlaylist' || currentPage === '/playlistEditor' || currentPage === '/delete') {
 				res.render(`pages/${currentPage}`, {
@@ -365,7 +368,7 @@ app.get('/getUserPlaylists', async (req, res) => {
 
 	try {
 		const response = await axios.get(`https://api.spotify.com/v1/users/${userId}/playlists`, options);
-		console.log("\n----\n", response.data, "\n----\n");
+		// console.log("\n----\n", response.data, "\n----\n");
 		// res.send(response.data);
 		const num_playlists = response.data.total;
 		addPlaylistsToDB(num_playlists, response.data, req.session.access_token);
