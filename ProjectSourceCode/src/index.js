@@ -256,8 +256,12 @@ app.get('/getUserPlaylists', async (req, res) => {
 
 	try {
 		const response = await axios.get(`https://api.spotify.com/v1/users/${userId}/playlists`, options);
-		console.log("\n----\n", response, "\n----\n");
-		res.send(response.data);
+		// console.log("\n----\n", response, "\n----\n");
+		// res.send(response.data);
+		const num_playlists = response.data.total;
+		const data = addPlaylistsToDB(num_playlists, response.data);
+		res.send(data)
+
 	} catch (error) {
 		console.error(error);
 		res.status(error.response.status).send(error.response.data);
@@ -278,7 +282,7 @@ async function get_id(access_token) {
 
 	try {
 		const user_obj = await axios.get(`https://api.spotify.com/v1/me`, options);
-		console.log("\n--get-id--\n", user_obj.data.id, "\n----\n")
+		// console.log("\n--get-id--\n", user_obj.data.id, "\n----\n")
 		return user_obj.data.id;
 	} catch (error) {
 		console.log(error);
@@ -345,6 +349,29 @@ const monitorTokens = (req) => {
 		}
 	}, 60 * 1000); // Check every 60 seconds
 };
+
+
+function addPlaylistsToDB(num_playlists, response) {
+	console.log(num_playlists);
+	for (var i = 0; i < num_playlists; i++) {
+		const curr_playlist = response.items[i];
+		const name = curr_playlist.name
+		const playlist_id = curr_playlist.id
+		const public = curr_playlist.public
+
+		// now build query
+		const query = `INSERT INTO playlists (name, playlist_id, public) VALUES ('${name}', '${playlist_id}', ${public}) RETURNING *;`;
+		db.one(query)
+		.then(data => {
+			console.log(data);
+			return data;
+		})
+		.catch(err => {
+			console.log(err.message);
+			return -1;
+		})
+	}
+}
 
 
 // *****************************************************
