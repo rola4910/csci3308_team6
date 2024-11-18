@@ -1,83 +1,31 @@
-<!-- drop down bar: load in playlists from db, each playlist will be a button that will load the playlist in the below card -->
+<!-- SELECTED PLAYLIST CARD -->
+<div id="chosen-playlist-card">
+    <div class="card">
+        <div class="card-header" style="text-align: center;">
+            {{playlistName}}
+        </div>
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item d-flex justify-content-between">
+                <span></span>
+                <span>Song</span>
+                <span>Artist</span>
+                <span>Release Date</span>
+            </li>
 
-<!-- DROP DOWN -->
-<br>
-<div class="chosen-playlist-dropdown">
-    <button class="btn btn-secondary dropdown-toggle" type="button"
-        data-bs-toggle="dropdown" aria-expanded="false">Select a
-        Playlist</button>
-    {{#each playlists}}
-    <ul class="dropdown-menu dropdown-menu-dark">
-        {{!-- FIXME: the below code was originally an a tag, if this code is
-        broken try putting it back to an a tag --}}
-        <li><button id="playlist-button" class="dropdown-item active"
-                onclick="selectPlaylist()">{{playlists.name}}</button></li>
-    </ul>
-    {{/each}}
-</div>
-<br>
-
-<div class="row">
-    <!-- SELECTED PLAYLIST CARD -->
-    <div id="chosen-playlist-card" class="col-sm-4 mb-3 mb-sm-0">
-        <div class="card">
-            <div class="card-header">
-                {{playlists.name}}
-            </div>
+            <!-- Example Playlist Songs -->
             <ul class="list-group list-group-flush">
-                <li class="list-group-item d-flex justify-content-between">
-                    <span>Song</span>
-                    <span>Artist</span>
-                    <span>Release Date</span>
-                </li>
-
-                <!-- Example Playlist Songs -->
                 {{#each playlist_songs}}
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item d-flex justify-content-between">
-                        <button style="background-color: transparent" onclick="colorChange(this)">Select</button>
-                        <span>a</span>
-                        <span>{{this.artist}}</span>
-                        <span>{{this.album_release}}</span>
-                    </li>
-                </ul>
-                 {{/each}}
+                <li id="song-list-group"
+                    class="list-group-item d-flex justify-content-between">
+                    <button class="song-selector"
+                        style="background-color: transparent"
+                        onclick="colorChange(event)"></button>
+                    <span>{{this.name}}</span>
+                    <span>{{this.artist}}</span>
+                    <span>{{this.album_release}}</span>
+                </li>
+                {{/each}}
             </ul>
-        </div>
-    </div>
-
-    <div id="new-playlist-card" class="col-sm-7 mb-3 mb-4">
-        <div class="card">
-            <div class="card-body">
-                <form action="/makePlaylist" method="GET"> 
-                    <input type="text" class="form-control mb-3" id="playlist-name"
-                        name="username" placeholder="playlist Name">
-                </form>
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item d-flex justify-content-between">
-                        <span>Song</span>
-                        <span>Artist</span>
-                        <span>Release Date</span>
-                    </li>
-                </ul>
-            </div>
-        </div>
+        </ul>
     </div>
 </div>
-
-{{!-- FIXME: atm you only get to click it once, it turns blue and then thats it. fix to where you can unselect --}}
-<script>
-function colorChange() {
-  if (button.style.backgroundColor === "blue") {
-    button.style.backgroundColor = "transparent"; // Reset to default
-  } else {
-    button.style.backgroundColor = "blue"; // Set to selected color
-  }
-}
-</script>
-
-<script>
-function selectPlaylist() {
-    var selectedPlaylist = playlists.name;  
-}
-</script>

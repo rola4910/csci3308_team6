@@ -1,1 +1,50 @@
-{{>chosenPlaylist}}
+<br>
+<div>
+    {{>dropdown}}
+</div>
+<br>
+<div class="row">
+    <div class="col-sm-4 mb-3 mb-sm-0">
+        {{>chosenPlaylist}}
+    </div>
+    <div class="col-sm-7 mb-3 mb-4">
+
+        <div class="row">
+    <!-- SELECTED PLAYLIST CARD -->
+    <div id="chosen-playlist-card-edited">
+        <div class="card">
+            <div class="card-header">
+                {{playlistName}}
+            </div>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item d-flex justify-content-between">
+                    <span></span>
+                    <span>Song</span>
+                    <span>Artist</span>
+                    <span>Release Date</span>
+                </li>
+
+                <!-- Example Playlist Songs -->
+                <ul class="list-group list-group-flush">
+                    {{#each playlist_songs}}
+                    <li class="list-group-item d-flex justify-content-between">
+                        <button class="song-selector"
+                            style="background-color: transparent"
+                            onclick="colorChange(event)"></button>
+                        <span>{{this.name}}</span>
+                        <span>{{this.artist}}</span>
+                        <span>{{this.album_release}}</span>
+                    </li>
+                    {{/each}}
+                </ul>
+            </ul>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+    </div>
+</div>
