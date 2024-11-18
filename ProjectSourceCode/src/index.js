@@ -465,7 +465,7 @@ const monitorTokens = (req) => {
 function addPlaylistsToDB(num_playlists, response, accessToken) {
 	// console.log(num_playlists);
 	for (var i = 0; i < num_playlists; i++) {
-		if (i == 100) {
+		if (i == 20) {
 			break;
 		}
 		const curr_playlist = response.items[i];
