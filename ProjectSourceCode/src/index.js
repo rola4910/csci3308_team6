@@ -469,11 +469,15 @@ function addPlaylistsToDB(num_playlists, response, accessToken) {
 			break;
 		}
 		const curr_playlist = response.items[i];
-		if (curr_playlist.description != null) {
-			if ((curr_playlist.description).includes("Blend")) {
-				continue;
-			}
+
+		if (curr_playlist.tracks.total == 0) {  // skip if no songs
+			continue;
 		}
+
+		if ((curr_playlist.images[0].url).includes("blend")) {  // skip if blend (maybe?)
+			continue;
+		}
+		
 		else {
 			var name = curr_playlist.name
 			if ((name).includes("'")) {
