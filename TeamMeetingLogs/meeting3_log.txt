@@ -3,7 +3,9 @@
 3. need to investigate playlist SDK to try and make a web player
 
 ^^ made get requests a post reques to fix security issues
-4. There is going to be a live action how to train your dragon
+4. Get playlist functionatily 
 5. Home page
 6. Login page work
-7. 
+7. There is going to be a live action how to train your dragon (June 13th)
+8. debug the bug
+9.
