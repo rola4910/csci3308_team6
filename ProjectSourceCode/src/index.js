@@ -369,8 +369,7 @@ app.get('/getUserPlaylists', async (req, res) => {
 		const response = await axios.get(`https://api.spotify.com/v1/users/${userId}/playlists`, options);
 		// console.log("\n----\n", response.data, "\n----\n");
 		// res.send(response.data);
-		const playlists = response.data.items;
-		const num_playlists = playlists.length;  // .length is total that could be returned, but 50 is max that can be accessed at once
+		const num_playlists = response.total;  // .total is total that could be returned, but 50 is max that can be accessed at once
 
 		addPlaylistsToDB(num_playlists, response.data, req.session.access_token);
 		res.redirect('/');
@@ -507,7 +506,7 @@ async function addPlaylistsToDB(num_playlists, response, accessToken) {
 		var curr_response = response;
 
 		console.log("num_next_calls:", num_next_calls);
-		console.log("current response:", curr_response);
+		// console.log("current response:", curr_response);
 
 		for (var i = 0; i < num_next_calls; i++) {
 			if (i == 0) { // first set of 50. do not need a 'next' call as they are in response already
@@ -527,6 +526,7 @@ async function addPlaylistsToDB(num_playlists, response, accessToken) {
 						if ((name).includes("'")) {
 							name = name.replace(/'/g, "''");
 						}
+						console.log("adding:", name, "#:", j);
 						const playlist_id = curr_playlist.id
 						const public = curr_playlist.public
 			
@@ -552,7 +552,7 @@ async function addPlaylistsToDB(num_playlists, response, accessToken) {
 					}
 				}
 				curr_response = await axios.get(curr_response.next, options);
-				console.log("current_response now:", curr_response.data);
+				// console.log("current_response now:", curr_response.data);
 
 				var curr_num_playlists = num_playlists % 50;
 				console.log("curr_num_playlists:", curr_num_playlists);
@@ -573,6 +573,7 @@ async function addPlaylistsToDB(num_playlists, response, accessToken) {
 							if ((name).includes("'")) {
 								name = name.replace(/'/g, "''");
 							}
+							console.log("adding from next:", name, "#:", j+50);
 							const playlist_id = curr_playlist.id
 							const public = curr_playlist.public
 				
@@ -581,7 +582,7 @@ async function addPlaylistsToDB(num_playlists, response, accessToken) {
 							db.one(query)
 							.then(data => {
 								// playlist has been inserted. now to add songs from this specific playlist
-								addSongsFromPlaylist(playlist_id, accessToken);
+								// addSongsFromPlaylist(playlist_id, accessToken);
 								return;
 							})
 							.catch(err => {
@@ -593,9 +594,7 @@ async function addPlaylistsToDB(num_playlists, response, accessToken) {
 				}
 			}
 
-			
-
-
+		
 			num_playlists -= curr_num_playlists;
 		}
 
