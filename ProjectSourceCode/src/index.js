@@ -371,7 +371,13 @@ app.get('/getUserPlaylists', async (req, res) => {
 		// res.send(response.data);
 		const num_playlists = response.total;  // .total is total that could be returned, but 50 is max that can be accessed at once
 
-		addPlaylistsToDB(num_playlists, response.data, req.session.access_token);
+		const total_playlists = response.data.total;
+
+		console.log('NUM PLAYLISTS: ', num_playlists);
+		console.log('TOTAL : ', total_playlists);
+
+
+		addPlaylistsToDB(total_playlists, response.data, req.session.access_token);
 		res.redirect('/');
 
 	} catch (error) {
@@ -464,9 +470,9 @@ const monitorTokens = (req) => {
 
 
 async function addPlaylistsToDB(num_playlists, response, accessToken) {
-	// console.log(num_playlists);
 
 	if (num_playlists <= 50) {
+		console.log('num_playlists < 50')
 		for (var i = 0; i < num_playlists; i++) {
 			const curr_playlist = response.items[i];
 	
@@ -502,11 +508,14 @@ async function addPlaylistsToDB(num_playlists, response, accessToken) {
 		}
 	}
 	else {  // more than 50 returned playlists. must access .next after 50th with new api call
-		const num_next_calls = (Math.ceil(num_playlists / 50)) - 1;  // at least 1
+		console.log('num_playlists > 50')
+		console.log('num_playlists: ', num_playlists);
+		const num_next_calls = (Math.ceil(num_playlists / 50));  // at least 1
 		var curr_response = response;
 
-		console.log("num_next_calls:", num_next_calls);
+		console.log("num_next_calls: ", num_next_calls);
 		// console.log("current response:", curr_response);
+		// var curr_num_playlists = num_playlists;
 
 		for (var i = 0; i < num_next_calls; i++) {
 			if (i == 0) { // first set of 50. do not need a 'next' call as they are in response already
@@ -535,7 +544,7 @@ async function addPlaylistsToDB(num_playlists, response, accessToken) {
 						db.one(query)
 						.then(data => {
 							// playlist has been inserted. now to add songs from this specific playlist
-							addSongsFromPlaylist(playlist_id, accessToken);
+							// addSongsFromPlaylist(playlist_id, accessToken);
 							return;
 						})
 						.catch(err => {
@@ -546,6 +555,7 @@ async function addPlaylistsToDB(num_playlists, response, accessToken) {
 				}
 			}
 			else { // start by doing api call to next to get remaining playlists
+				console.log('GOT TO ELSE after adding first 50 playlists');
 				const options = {
 					headers: {
 						'Authorization': `Bearer ${accessToken}`
@@ -554,10 +564,15 @@ async function addPlaylistsToDB(num_playlists, response, accessToken) {
 				curr_response = await axios.get(curr_response.next, options);
 				// console.log("current_response now:", curr_response.data);
 
+				console.log('num_playlists:', num_playlists)
+
 				var curr_num_playlists = num_playlists % 50;
+
 				console.log("curr_num_playlists:", curr_num_playlists);
-				for (var j = 0; j < curr_num_playlists; j++) {
+				
+				// for (var j = 0; j < curr_num_playlists; j++) {
 					for (var j = 0; j < curr_num_playlists; j++) {
+						console.log(curr_response.items);
 						const curr_playlist = curr_response.items[j];
 		
 						if (curr_playlist.tracks.total == 0) {  // skip if no songs
@@ -591,11 +606,12 @@ async function addPlaylistsToDB(num_playlists, response, accessToken) {
 							})
 						}
 					}
-				}
+				// }
+				console.log('NUMPLAYLISTS BEOFRE MINUS', num_playlists);
+				num_playlists -= curr_num_playlists;
+				console.log('NUMPLAYLISTS AFTER MINUS', num_playlists);
 			}
-
-		
-			num_playlists -= curr_num_playlists;
+			
 		}
 
 	}
