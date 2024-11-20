@@ -28,7 +28,7 @@ const generateRandomString = (length) => {
 
 const clientId = "c25f72fe66174e8ab75756ddc591301f";
 const redirectUri = "http://localhost:3000/callback";
-const scope = 'user-read-private user-read-email playlist-read-private playlist-modify-public playlist-modify-private';
+const scope = 'user-read-private user-read-email playlist-read-private playlist-modify-public playlist-modify-private user-read-playback-state user-modify-playback-state user-read-currently-playing streaming app-remote-control';
 const clientSecret = '07e098d9c6d7421494042196d2b322fd';
 
 // *****************************************************
@@ -265,9 +265,9 @@ app.post('/login', async (req, res) => {
 });
 
 
-// app.get('/register', (req, res) => {
-// 	res.redirect('pages/login');
-// });
+app.get('/register', (req, res) => {
+	res.redirect('pages/login');
+});
 
 
 // Register
@@ -293,54 +293,6 @@ app.post('/register', async (req, res) => {
 	  });
 });
 
-// app.post('/register', async (req, res) => {
-//     try {
-//         // Hash the password
-//         const hash = await bcrypt.hash(req.body.password, 10);
-        
-//         // Insert the user data into the database
-//         const query = "INSERT INTO users (username, password) VALUES ($1, $2) RETURNING *";
-//         const values = [req.body.username, hash];
-//         const user = await db.one(query, values);
-
-//         console.log("Data added successfully.");
-        
-//         // Redirect to /login upon successful registration
-//         return res.redirect(302, '/login'); // Default 302 status code for redirect
-//     } catch (err) {
-//         console.error("Error during registration:", err);
-        
-//         // Render the registration page with an error message
-//         return res.status(400).render('pages/register', { message: 'Invalid input' });
-//     }
-// });
-
-// app.post('/register', async (req, res) => {
-//     try {
-//         // Hash the password
-//         // const hash = await bcrypt.hash(req.body.password, 10);
-        
-//         // // Insert the user data into the database
-//         // const query = "INSERT INTO users (username, password) VALUES ($1, $2) RETURNING *";
-//         // const values = [req.body.username, hash];
-//         // const user = await db.one(query, values);
-
-//         // console.log("Data added successfully:", user);
-        
-//         // Log just before redirecting
-//         console.log("Reached redirect line, redirecting to /login");
-//         return res.redirect(302, '/login');  // Default 302 status code for redirect
-//     } catch (err) {
-//         console.error("Error during registration:", err);
-        
-//         // Render the registration page with an error message
-//         return res.status(400).render('pages/register', { message: 'Invalid input' });
-//     }
-// });
-  
-// app.post('/register', (req, res) => {
-//     return res.redirect(302, '/login');
-// });
 
 app.get('/logout', (req, res) => {
 	req.session.destroy();
@@ -433,6 +385,13 @@ app.get('/getUserPlaylists', async (req, res) => {
 		res.status(error.response.status).send(error.response.data);
 	}
 });
+
+app.get('/player', (req, res) => {
+	const accessToken = req.session.access_token;
+
+    res.render('pages/player', { accessToken });
+});
+
 
 // *****************************************************
 // TESTING

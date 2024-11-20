@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Spotify Web Playback SDK Quick Start</title>
+</head>
+
+<body>
+    <h1>Spotify Web Playback SDK Quick Start</h1>
+
+
+    <div class="container" style="justify-content: center;">
+        <button class="btn-spotify" id="transferPlayback">Transfer Playback</button>
+
+        <div className="container">
+
+            <button id="begin-playback">Begin Playback</button>
+
+            <div className="main-wrapper">
+                <img src='' className="now-playing__cover" id="current-track-cover" alt="" />
+
+                <div className="now-playing__side">
+                    <b>Now Playing: </b>
+                    <div className="now-playing__name" id="current-track"></div>
+                    <p>by </p>
+                    <div className="now-playing__artist" id="current-track-artist"></div>
+                </div>
+                <div>
+                    <b>Up Next: </b>
+                    <div id="up-next"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="btn-group btn-group-lg" role="group">
+            <button className="btn-spotify" id="skipBack">Skip Back</button>
+            <button className="btn-spotify" id="togglePlay">Toggle Play</button>
+            <button className="btn-spotify" id="skipForward">Skip Forward</button>
+        </div>
+    </div>
+
+    <script src="https://sdk.scdn.co/spotify-player.js"></script>
+    <script>
+        const token = "{{ accessToken }}";
+        // console.log("Accesss Token: ", {{accessToken}});
+        window.onSpotifyWebPlaybackSDKReady = () => {
+            const player = new Spotify.Player({
+                name: 'Web Playback SDK Quick Start Player',
+                getOAuthToken: cb => { cb(token); },
+                volume: 0.5
+            });
+
+            // Ready
+            player.addListener('ready', ({ device_id }) => {
+                console.log('Ready with Device ID', device_id);
+
+                fetch('https://api.spotify.com/v1/me/player', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        device_ids: [device_id],
+                        play: true // Set to true to start playback after transfer
+                    })
+                }).then(response => {
+                    if (response.ok) {
+                        console.log('Playback transferred successfully');
+                    } else {
+                        console.error('Failed to transfer playback', response);
+                    }
+                }).catch(error => {
+                    console.error('Error transferring playback', error);
+                });
+            });
+
+            // Not Ready
+            player.addListener('not_ready', ({ device_id }) => {
+                console.log('Device ID has gone offline', device_id);
+            });
+
+            player.addListener('initialization_error', ({ message }) => {
+                console.error(message);
+            });
+
+            player.addListener('authentication_error', ({ message }) => {
+                console.error(message);
+            });
+
+            player.addListener('account_error', ({ message }) => {
+                console.error(message);
+            });
+
+            document.getElementById('skipBack').onclick = function () {
+                player.previousTrack();
+            };
+
+            document.getElementById('togglePlay').onclick = function () {
+                player.togglePlay();
+            };
+
+            document.getElementById('skipForward').onclick = function () {
+                player.nextTrack();
+            };
+
+            // const [is_paused, setPaused] = useState(false);
+            // const [is_active, setActive] = useState(false);
+            // const [current_track, setTrack] = useState(track);
+
+            player.addListener('player_state_changed', (state => {
+
+                if (!state) {
+                    return;
+                }
+
+                const currTrack = state.track_window.current_track;
+
+                document.getElementById('current-track').textContent = currTrack.name;
+                document.getElementById('current-track-artist').textContent = currTrack.artists[0].name;
+                document.getElementById('up-next').textContent = state.track_window.next_tracks[0].name;
+                document.getElementById('current-track-cover').src = currTrack.album.images[0].url;
+
+
+                player.getCurrentState().then(state => {
+                    (!state) ? setActive(false) : setActive(true)
+                });
+
+            }));
+
+            document.getElementById('transferPlayback').onclick = function () {
+
+            };
+
+            player.connect();
+        }
+    </script>
+</body>
+
+</html>
