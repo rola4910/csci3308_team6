@@ -535,6 +535,25 @@ const monitorTokens = (req) => {
 
 async function addPlaylistsToDB(num_playlists, response, accessToken) {
 	// console.log(num_playlists);
+	for (var i = 0; i < num_playlists; i++) {
+
+		const curr_playlist = response.items[i];
+
+		if (curr_playlist.tracks.total == 0) {  // skip if no songs
+			continue;
+		}
+
+		if ((curr_playlist.images[0].url).includes("blend")) {  // skip if blend (maybe?)
+			continue;
+		}
+		
+		else {
+			var name = curr_playlist.name
+			if ((name).includes("'")) {
+				name = name.replace(/'/g, "''");
+			}
+			const playlist_id = curr_playlist.id
+			const public = curr_playlist.public
 
 	if (num_playlists <= 50) {
 		for (var i = 0; i < num_playlists; i++) {

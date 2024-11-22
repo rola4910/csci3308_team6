@@ -13,8 +13,21 @@
             </li>
 
             <!-- Example Playlist Songs -->
+            <form action="/addSongs" method="POST">
+                <ul class="list-group list-group-flush">
+                    {{#each playlist_songs}}
+                    <li id="song-list-group"
+                        class="list-group-item d-flex justify-content-between">
+                        <input id={{this.id}} type="checkbox" name="id[]" value={{this.id}}>
+                        <span>{{this.name}}</span>
+                        <span>{{this.artist}}</span>
+                        <span>{{this.album_release}}</span>
+                    </li>
+                    {{/each}}
+                </ul>
+                <button type="submit" class="btn">Add Selected Songs</button>
+            </form>
             <ul class="list-group list-group-flush">
-<<<<<<< HEAD
                 <li class="list-group-item d-flex justify-content-between">
                     <span>Song</span>
                     <span>Artist</span>
@@ -38,24 +51,10 @@
                     </li>
                 </ul>
                  {{/each}}
-=======
-                {{#each playlist_songs}}
-                <li id="song-list-group"
-                    class="list-group-item d-flex justify-content-between">
-                    <button class="song-selector"
-                        style="background-color: transparent"
-                        onclick="colorChange(event)"></button>
-                    <span>{{this.name}}</span>
-                    <span>{{this.artist}}</span>
-                    <span>{{this.album_release}}</span>
-                </li>
-                {{/each}}
->>>>>>> front-end
             </ul>
         </ul>
     </div>
 </div>
-<<<<<<< HEAD
 
 {{!-- FIXME: atm you only get to click it once, it turns blue and then thats it. fix to where you can unselect --}}
 <script>
@@ -75,5 +74,3 @@ function selectPlaylist() {
     var selectedPlaylist = playlists.name;  
 }
 </script>
-=======
->>>>>>> front-end
