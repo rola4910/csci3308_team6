@@ -27,8 +27,8 @@ const generateRandomString = (length) => {
 }
 
 const clientId = "c25f72fe66174e8ab75756ddc591301f";
-const redirectUri = "http://localhost:3000/callback"; // local redirect
-// const redirectUri = "https://csci3308-team6.onrender.com/callback";
+// const redirectUri = "http://localhost:3000/callback"; // local redirect
+const redirectUri = "https://csci3308-team6.onrender.com/callback";
 const scope = 'user-read-private user-read-email playlist-read-private playlist-modify-public playlist-modify-private';
 const clientSecret = '07e098d9c6d7421494042196d2b322fd';
 
@@ -45,8 +45,8 @@ const hbs = handlebars.create({
 
 // database configuration
 const dbConfig = {
-	host: 'db', // the database server local
-	// host: 'dpg-ct0bpclumphs73f3qem0-a',
+	// host: 'db', // the database server local
+	host: 'dpg-ct0bpclumphs73f3qem0-a',
 	port: 5432, // the database port
 	database: process.env.POSTGRES_DB, // the database name
 	user: process.env.POSTGRES_USER, // the user account to connect with
