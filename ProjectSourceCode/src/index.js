@@ -362,7 +362,10 @@ app.get('/getUserPlaylists', async (req, res) => {
 		const response = await axios.get(`https://api.spotify.com/v1/users/${userId}/playlists`, options);
 		// console.log("\n----\n", response.data, "\n----\n");
 		// res.send(response.data);
-		const num_playlists = response.data.total;
+		// const num_playlists = response.data.total;
+		const playlists = response.data.items;
+		const num_playlists = playlists.length;
+
 		addPlaylistsToDB(num_playlists, response.data, req.session.access_token);
 		res.redirect('/');
 
