@@ -7,14 +7,16 @@
     <ul class="dropdown-menu">
         {{#each playlists}}
         <li class="playlist-selector">
-            {{!-- <a href="/getSongs?id={{this.id}}&name={{this.name}}&currentPage={{../currentPage}}">{{this.name}}
-            </a> --}}
-            <form action="/getSongs" method="post" style="display: inline;">
+            <form action="/makePlaylist" method="POST"
+                style="display: inline;">
                 <input type="hidden" name="id" value="{{this.playlist_id}}">
-                <input type="hidden" name="name" value="{{this.name}}">
-                <input type="hidden" name="currentPage" value="{{../currentPage}}">
-                <button type="submit" class="dropdown-item">{{this.name}}</button>
+                {{!-- <input type="hidden" name="name" value="{{this.name}}">
+                <input type="hidden" name="currentPage"
+                    value="{{../currentPage}}"> --}}
+                <button type="submit"
+                    class="dropdown-item">{{this.name}}</button>
             </form>
+            {{!-- <button type="submit" class="dropdown-item">{{this.name}}</button> --}}
         </li>
         {{/each}}
     </ul>
