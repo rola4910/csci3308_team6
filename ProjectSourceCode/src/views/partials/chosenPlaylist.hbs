@@ -13,12 +13,12 @@
             </li>
 
             <!-- Example Playlist Songs -->
-            <form action="/addSongs" method="POST">
+            <form action="/makePlaylist" method="POST">
                 <ul class="list-group list-group-flush">
                     {{#each playlist_songs}}
                     <li id="song-list-group"
                         class="list-group-item d-flex justify-content-between">
-                        <input id={{this.id}} type="checkbox" name="id[]" value={{this.id}}>
+                        <input id={{this}} type="checkbox" name="tracks" value={{this}}>
                         <span>{{this.name}}</span>
                         <span>{{this.artist}}</span>
                         <span>{{this.album_release}}</span>

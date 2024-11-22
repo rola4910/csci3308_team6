@@ -128,7 +128,54 @@ app.get('/makePlaylist', (req, res) => {
 			res.status(500).send('Error retrieving playlists');
 		});
 
+})
 
+app.post('/makePlaylist',  (req, res) => {
+	const playlist_query = 'SELECT * FROM playlists;';
+    const currentPage = req.path;
+    const selectedPlaylistId =  req.body.id; // Retrieve playlist_id from query params
+	const newPlaylistName = req.body.newName;
+	const selectedSongs = req.body.tracks;
+
+    // If a playlist is selected, get its songs
+    const getSongsPromise = selectedPlaylistId
+        ? getSongs(selectedPlaylistId)
+        : Promise.resolve([]); // No playlist selected, return an empty array
+	// // FIXME: If a new playlist name has been submitted call createNewPlaylist
+	// const createPlaylistPromise = newPlaylistName
+    //     ? createNewPlaylist(newPlaylistName)
+	// 	: Promise.resolve(); // no new name entered return an empty object?
+	// // 	//FIXME: add an error message to the resolve if the query fails
+
+	// //add songs promise
+	// const addSongsPromise = selectedSongs
+	// 	? addSongs(selectedSongs)
+	// 	: Promise.resolve(); // if query fails return an err message
+
+    // Fetch playlists and songs in parallel
+    Promise.all([
+		
+		getSongsPromise,
+		// createPlaylistPromise,
+		//addSongsPromise,
+		db.any(playlist_query)
+		
+	])
+	.then(([playlist_songs, playlists ]) => {
+		res.render('pages/makePlaylist', {
+			
+			// currentPage: currentPage,
+			// selectedPlaylistId: selectedPlaylistId || null,
+			playlists: playlists,
+			playlist_songs: playlist_songs || []
+			
+			// selectedSongs: selectedSongs || []
+		});
+	})
+	.catch(err => {
+		console.error(err);
+		res.status(500).send('Error retrieving playlists and songs');
+	});
 });
 
 app.get('/playlistEditor', (req, res) => {
@@ -138,7 +185,6 @@ app.get('/playlistEditor', (req, res) => {
 
 	db.any(playlist_query)
 		.then(data => {
-			// console.log("playlistEditor:", data[1].name)
 			const playlists = data;
 			// Render the makePlaylist page with the playlists and playlist songs
 			res.render('pages/playlistEditor', {
@@ -173,61 +219,8 @@ app.get('/delete', (req, res) => {
 		});
 });
 
-app.post('/getSongs', (req, res) => {
-
-	const playlistId = req.body.id; // Retrieve the id from the query parameters
-	// console.log("chosen id:", playlistId);
-	const playlistName = req.body.name;
-	const currentPage = req.body.currentPage; // Gets the path of the current request
-	const playlist_query = `SELECT * FROM playlists;`;
-	const songs_query = `SELECT * FROM playlist_songs WHERE playlist_id = '${playlistId}';`;
-	// console.log('current page: ', currentPage);
-
-	// console.log('Selected Playlist ID:', playlistId);
-	// console.log('Selected Playlist name:', playlistName);
-
-	db.task('get-everything', task => {
-		return task.batch([task.any(playlist_query), task.any(songs_query, playlistId)]);
-	})
-		.then(data => {
-			const playlists = data[0];
-			const playlist_songs = data[1];
-			// console.log("queried songs:", playlist_songs);
-			// Render the currentPage with the playlists and playlist songs
-			if (currentPage === '/makePlaylist' || currentPage === '/playlistEditor' || currentPage === '/delete') {
-				res.render(`pages/${currentPage}`, {
-					playlists: playlists,
-					playlist_songs: playlist_songs,
-					playlistName: playlistName,
-					currentPage: currentPage
-				});
-			}
-
-		})
-		.catch(err => {
-			console.error(err);
-			res.status(500).send('Error retrieving playlists and songs');
-		});
-});
-
-app.post('/makeNewPlaylist', (req, res) => {
-	const newPlaylistName = req.body.newName;
-	res.render('pages/makePlaylist', {newPlaylistName: newPlaylistName});
-	console.log(newPlaylistName);
-	// TODO: INSERT NEW PLAYLIST TRACKS INTO db
-});
-
-app.post('/addSongs', (req, res) => {
-	const selectedSongIDs = req.body.id;
-	console.log('Selected Song IDs:', selectedSongIDs);
-	res.render('pages/makePlaylist', {selectedSongIDs: selectedSongIDs});
-
-	//ADD SONGS TO DRAFT PLAYLIST
-})
-
-
 app.get('/login', function (req, res) {
-	res.render('pages/login', {bodyId: 'login-page'});
+	res.render('pages/login', { bodyId: 'login-page' });
 });
 
 
@@ -443,7 +436,7 @@ const monitorTokens = (req) => {
 	setInterval(async () => {
 		console.log('Checking for expiry...')
 		const currentTime = Date.now();
-		const timeDiff = currentTime-req.session.start_time;
+		const timeDiff = currentTime - req.session.start_time;
 		const accessTokenExpiry = req.session.access_token_expiry * 1000; // convert token expiration time to milliseconds
 
 		// If the access token is about to expire (5 minutes left)
@@ -465,7 +458,7 @@ const monitorTokens = (req) => {
 function addPlaylistsToDB(num_playlists, response, accessToken) {
 	// console.log(num_playlists);
 	for (var i = 0; i < num_playlists; i++) {
-		if (i == 100) {
+		if (i == 50) {
 			break;
 		}
 		const curr_playlist = response.items[i];
@@ -477,7 +470,7 @@ function addPlaylistsToDB(num_playlists, response, accessToken) {
 		if ((curr_playlist.images[0].url).includes("blend")) {  // skip if blend (maybe?)
 			continue;
 		}
-		
+
 		else {
 			var name = curr_playlist.name
 			if ((name).includes("'")) {
@@ -489,15 +482,15 @@ function addPlaylistsToDB(num_playlists, response, accessToken) {
 			// now build query
 			const query = `INSERT INTO playlists (name, playlist_id, public) VALUES ('${name}', '${playlist_id}', ${public}) RETURNING *;`;
 			db.one(query)
-			.then(data => {
-				// playlist has been inserted. now to add songs from this specific playlist
-				addSongsFromPlaylist(playlist_id, accessToken);
-				return;
-			})
-			.catch(err => {
-				console.log(err.message);
-				return;
-			})
+				.then(data => {
+					// playlist has been inserted. now to add songs from this specific playlist
+					addSongsFromPlaylist(playlist_id, accessToken);
+					return;
+				})
+				.catch(err => {
+					console.log(err.message);
+					return;
+				})
 		}
 	}
 }
@@ -514,7 +507,7 @@ async function addSongsFromPlaylist(playlistId, accessToken) {
 		const response = await axios.get(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, options);
 		const num_songs = response.data.total;
 		if (num_songs <= 100) {
-			for (var i = 0; i < num_songs; i++) {	
+			for (var i = 0; i < num_songs; i++) {
 				const curr_song = response.data.items[i].track;
 
 				var name = curr_song.name;
@@ -538,20 +531,20 @@ async function addSongsFromPlaylist(playlistId, accessToken) {
 				const album_release = curr_song.album.release_date;
 				const added_at = response.data.items[i].added_at;
 				const popularity = parseInt(curr_song.popularity, 10);
-				
+
 				const query = `INSERT INTO playlist_songs 
 				                   (name, duration, artist, song_id, album_name, album_release, added_at, popularity, playlist_id) 
 								   VALUES
 								   ('${name}', ${duration}, '${first_artist}', '${song_id}', '${album_name}', '${album_release}', '${added_at}', ${popularity}, '${playlistId}')
 							   RETURNING *;`;
 				db.one(query)
-				.then(data => {
-					return 1;
-				})
-				.catch(err => {
-					console.log(err.message);
-					return err;
-				})
+					.then(data => {
+						return 1;
+					})
+					.catch(err => {
+						console.log(err.message);
+						return err;
+					})
 			}
 		}
 		// console.log("\n");
@@ -562,7 +555,54 @@ async function addSongsFromPlaylist(playlistId, accessToken) {
 	}
 }
 
+function getSongs(playlistId) {
+    const songs_query = `SELECT * FROM playlist_songs WHERE playlist_id = $1;`;
+    return db.any(songs_query, [playlistId])
+        .then(data => {
+			return data;
+		}) // Return the data
+        .catch(err => {
+            console.error(err);
+            throw err; // Rethrow to handle in the caller
+        });	
+}
 
+function createNewPlaylist(newPlaylistName){
+	// const newPlaylistName = req.body.newName;
+	// const addNewPlaylistToDB = 'INSERT INTO users (name, playlist_id, public) VALUES ($1, $2, $3);';
+	// db.any(query, [newPlaylistName, NULL, true])
+	// .then(data => data)
+	// .catch(errerr => {
+	// 	console.log(err);
+	// 	res.status(400);
+	// 	res.render('pages/register', {
+	// 	  message: `Failed to add playlist to Database`
+	// 	});
+	//   });
+	
+		
+	// TODO: INSERT NEW PLAYLIST TRACKS INTO db
+}
+
+function addSongs(selectedSongs){
+    // return new Promise((resolve, reject) => {
+    //     const query = 'INSERT INTO playlist_songs (...) VALUES (...)';
+    //     db.none(query, [/* song data */])
+    //         .then(resolve)
+    //         .catch(err => {
+    //             console.error('Error adding songs:', err);
+    //             reject(new Error('Failed to add songs to the playlist'));
+    //         });
+    // });
+
+}
+function deletePlaylist(playlistID)
+{
+	// const deleteSongsQuery = 'DELETE FROM playlist_songs WHERE playlist_id = $1;';
+	// const changePlaylistTitle = 'UPDATE playlists SET name = $1 WHERE playlist_id = $2;'
+
+	// db.none()
+}
 
 // *****************************************************
 // <!-- Section 6 : Start Server-->
