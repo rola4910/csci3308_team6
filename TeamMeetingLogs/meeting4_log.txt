@@ -1,1 +1,11 @@
-1. fIxuRmIx FIXYOURMIX fixurmix
+- possible issue with spotify authorization; does not let you re-auth even after clearing cookies
+
+- finish delete page functions
+
+- added playlists to database
+
+- added songs to database
+
+- removed blends from being included in read in playlists
+
+- need to link songs to playlists via foreign key
