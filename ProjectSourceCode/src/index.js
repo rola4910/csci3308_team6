@@ -100,8 +100,7 @@ app.use('/resources', express.static(path.join(__dirname, 'resources')));
 // *****************************************************
 app.get('/', async function (req, res) {
 	if (req.session.access_token != null) {
-		req.session.uid = await get_id(req.session.access_token);
-		res.redirect('/getUserPlaylists');
+		res.render('pages/login');
 	}
 	else {
 		res.redirect('/login');
@@ -342,7 +341,7 @@ app.get('/callback', async function (req, res) {
 				req.session.access_token_expiry = response.data.expires_in;
 				req.session.start_time = Date.now();
 
-				res.redirect('/');
+				res.redirect('/getUserPlaylists');
 				// res.send({
 				// 	access_token: req.session.access_token,
 				// 	refresh_token: req.session.refresh_token
@@ -362,6 +361,14 @@ app.get('/getUserPlaylists', async (req, res) => {
 	// Assume accessToken is obtained during the authorization flow and stored in session variable
 	const accessToken = req.session.access_token;
 
+	if (req.session.access_token != null) {
+		req.session.uid = await get_id(req.session.access_token);
+	}
+	else {
+		res.send("Error with user_id");
+		return;
+	}
+
 	const userId = req.session.uid;
 
 	const options = {
@@ -379,7 +386,7 @@ app.get('/getUserPlaylists', async (req, res) => {
 		console.log('TOTAL : ', total_playlists);
 
 		addPlaylistsToDB(total_playlists, response.data, req.session.access_token, req.session.uid);
-		res.redirect('/login');
+		res.redirect('/');
 
 	} catch (error) {
 		console.error(error);
