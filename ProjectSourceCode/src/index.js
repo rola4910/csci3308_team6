@@ -27,7 +27,8 @@ const generateRandomString = (length) => {
 }
 
 const clientId = "c25f72fe66174e8ab75756ddc591301f";
-const redirectUri = "http://localhost:3000/callback";
+// const redirectUri = "http://localhost:3000/callback"; // local redirect
+const redirectUri = "https://csci3308-team6.onrender.com/callback";
 const scope = 'user-read-private user-read-email playlist-read-private playlist-modify-public playlist-modify-private';
 const clientSecret = '07e098d9c6d7421494042196d2b322fd';
 
@@ -44,7 +45,8 @@ const hbs = handlebars.create({
 
 // database configuration
 const dbConfig = {
-	host: 'db', // the database server
+	// host: 'db', // the database server local
+	host: 'dpg-ct0bpclumphs73f3qem0-a',
 	port: 5432, // the database port
 	database: process.env.POSTGRES_DB, // the database name
 	user: process.env.POSTGRES_USER, // the user account to connect with
@@ -100,7 +102,7 @@ app.get('/', async function (req, res) {
 	if (req.session.access_token != null) {
 		req.session.uid = await get_id(req.session.access_token);
 	}
-	res.render('pages/login');
+	res.redirect('/getUserPlaylists');
 });
 
 app.get('/features', (req, res) => {
@@ -337,7 +339,7 @@ app.get('/callback', async function (req, res) {
 				req.session.access_token_expiry = response.data.expires_in;
 				req.session.start_time = Date.now();
 
-				res.redirect('/getUserPlaylists');
+				res.redirect('/');
 				// res.send({
 				// 	access_token: req.session.access_token,
 				// 	refresh_token: req.session.refresh_token
@@ -369,16 +371,12 @@ app.get('/getUserPlaylists', async (req, res) => {
 		const response = await axios.get(`https://api.spotify.com/v1/users/${userId}/playlists`, options);
 		// console.log("\n----\n", response.data, "\n----\n");
 		// res.send(response.data);
-		const num_playlists = response.total;  // .total is total that could be returned, but 50 is max that can be accessed at once
 
 		const total_playlists = response.data.total;
-
-		console.log('NUM PLAYLISTS: ', num_playlists);
 		console.log('TOTAL : ', total_playlists);
 
-
 		addPlaylistsToDB(total_playlists, response.data, req.session.access_token, req.session.uid);
-		res.redirect('/');
+		res.redirect('/login');
 
 	} catch (error) {
 		console.error(error);
@@ -470,12 +468,17 @@ const monitorTokens = (req) => {
 
 
 async function addPlaylistsToDB(num_playlists, response, accessToken, uid) {
-
+	console.log("ALL PLAYLISTS:", response.items);
 	if (num_playlists <= 50) {
-		console.log('num_playlists < 50')
+		// console.log('num_playlists < 50');
 		for (var i = 0; i < num_playlists; i++) {
 			const curr_playlist = response.items[i];
+			// console.log("CURRENT PLAYLIST:\n", curr_playlist, "\n\n");
 	
+			if (curr_playlist == null || curr_playlist == undefined) {  // skip if null or undef?
+				continue;
+			}
+
 			if (curr_playlist.tracks.total == 0) {  // skip if no songs
 				continue;
 			}
