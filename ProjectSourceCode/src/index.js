@@ -101,8 +101,11 @@ app.use('/resources', express.static(path.join(__dirname, 'resources')));
 app.get('/', async function (req, res) {
 	if (req.session.access_token != null) {
 		req.session.uid = await get_id(req.session.access_token);
+		res.redirect('/getUserPlaylists');
 	}
-	res.redirect('/getUserPlaylists');
+	else {
+		res.redirect('/login');
+	}
 });
 
 app.get('/features', (req, res) => {
