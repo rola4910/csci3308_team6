@@ -108,7 +108,7 @@ app.get('/features', (req, res) => {
 });
 
 app.get('/makePlaylist', (req, res) => {
-	const playlist_query = 'SELECT * FROM playlists;';
+	const playlist_query = `SELECT * FROM playlists WHERE owner = '${req.session.uid}';`;
 	const currentPage = req.path;
 	// console.log(currentPage);
 
@@ -132,7 +132,7 @@ app.get('/makePlaylist', (req, res) => {
 });
 
 app.get('/playlistEditor', (req, res) => {
-	const playlist_query = 'SELECT * FROM playlists;';
+	const playlist_query = `SELECT * FROM playlists WHERE owner = '${req.session.uid}';`;
 	const currentPage = req.path;
 	// console.log(currentPage);
 
@@ -153,7 +153,7 @@ app.get('/playlistEditor', (req, res) => {
 });
 
 app.get('/delete', (req, res) => {
-	const playlist_query = 'SELECT * FROM playlists;';
+	const playlist_query = `SELECT * FROM playlists WHERE owner = '${req.session.uid}';`;
 	const currentPage = req.path;
 	// console.log(currentPage);
 
@@ -179,8 +179,8 @@ app.post('/getSongs', (req, res) => {
 	// console.log("chosen id:", playlistId);
 	const playlistName = req.body.name;
 	const currentPage = req.body.currentPage; // Gets the path of the current request
-	const playlist_query = `SELECT * FROM playlists;`;
-	const songs_query = `SELECT * FROM playlist_songs WHERE playlist_id = '${playlistId}';`;
+	const playlist_query = `SELECT * FROM playlists WHERE owner = '${req.session.uid}';`;
+	const songs_query = `SELECT * FROM playlist_songs WHERE playlist_id = '${playlistId}' AND owner = '${req.session.uid}';`;
 	// console.log('current page: ', currentPage);
 
 	// console.log('Selected Playlist ID:', playlistId);
@@ -337,7 +337,7 @@ app.get('/callback', async function (req, res) {
 				req.session.access_token_expiry = response.data.expires_in;
 				req.session.start_time = Date.now();
 
-				res.redirect('/');
+				res.redirect('/getUserPlaylists');
 				// res.send({
 				// 	access_token: req.session.access_token,
 				// 	refresh_token: req.session.refresh_token
@@ -377,7 +377,7 @@ app.get('/getUserPlaylists', async (req, res) => {
 		console.log('TOTAL : ', total_playlists);
 
 
-		addPlaylistsToDB(total_playlists, response.data, req.session.access_token);
+		addPlaylistsToDB(total_playlists, response.data, req.session.access_token, req.session.uid);
 		res.redirect('/');
 
 	} catch (error) {
@@ -469,7 +469,7 @@ const monitorTokens = (req) => {
 };
 
 
-async function addPlaylistsToDB(num_playlists, response, accessToken) {
+async function addPlaylistsToDB(num_playlists, response, accessToken, uid) {
 
 	if (num_playlists <= 50) {
 		console.log('num_playlists < 50')
@@ -493,11 +493,11 @@ async function addPlaylistsToDB(num_playlists, response, accessToken) {
 				const public = curr_playlist.public
 	
 				// now build query
-				const query = `INSERT INTO playlists (name, playlist_id, public) VALUES ('${name}', '${playlist_id}', ${public}) RETURNING *;`;
+				const query = `INSERT INTO playlists (name, owner, playlist_id, public) VALUES ('${name}', '${uid}', '${playlist_id}', ${public}) RETURNING *;`;
 				db.one(query)
 				.then(data => {
 					// playlist has been inserted. now to add songs from this specific playlist
-					addSongsFromPlaylist(playlist_id, accessToken);
+					addSongsFromPlaylist(playlist_id, accessToken, uid);
 					return;
 				})
 				.catch(err => {
@@ -508,12 +508,12 @@ async function addPlaylistsToDB(num_playlists, response, accessToken) {
 		}
 	}
 	else {  // more than 50 returned playlists. must access .next after 50th with new api call
-		console.log('num_playlists > 50')
-		console.log('num_playlists: ', num_playlists);
+		// console.log('num_playlists > 50')
+		// console.log('num_playlists: ', num_playlists);
 		const num_next_calls = (Math.ceil(num_playlists / 50));  // at least 1
 		var curr_response = response;
 
-		console.log("num_next_calls: ", num_next_calls);
+		// console.log("num_next_calls: ", num_next_calls);
 		// console.log("current response:", curr_response);
 		// var curr_num_playlists = num_playlists;
 
@@ -535,12 +535,12 @@ async function addPlaylistsToDB(num_playlists, response, accessToken) {
 						if ((name).includes("'")) {
 							name = name.replace(/'/g, "''");
 						}
-						console.log("adding:", name, "#:", j);
+						// console.log("adding:", name, "#:", j);
 						const playlist_id = curr_playlist.id
 						const public = curr_playlist.public
 			
 						// now build query
-						const query = `INSERT INTO playlists (name, playlist_id, public) VALUES ('${name}', '${playlist_id}', ${public}) RETURNING *;`;
+						const query = `INSERT INTO playlists (name, owner, playlist_id, public) VALUES ('${name}', '${uid}', '${playlist_id}', ${public}) RETURNING *;`;
 						db.one(query)
 						.then(data => {
 							// playlist has been inserted. now to add songs from this specific playlist
@@ -555,7 +555,7 @@ async function addPlaylistsToDB(num_playlists, response, accessToken) {
 				}
 			}
 			else { // start by doing api call to next to get remaining playlists
-				console.log('GOT TO ELSE after adding first 50 playlists');
+				// console.log('GOT TO ELSE after adding first 50 playlists');
 				const options = {
 					headers: {
 						'Authorization': `Bearer ${accessToken}`
@@ -564,11 +564,11 @@ async function addPlaylistsToDB(num_playlists, response, accessToken) {
 				curr_response = await axios.get(curr_response.next, options);
 				// console.log("current_response now:", curr_response.data);
 
-				console.log('num_playlists:', num_playlists)
+				// console.log('num_playlists:', num_playlists)
 
 				var curr_num_playlists = num_playlists % 50;
 
-				console.log("curr_num_playlists:", curr_num_playlists);
+				// console.log("curr_num_playlists:", curr_num_playlists);
 				
 				// for (var j = 0; j < curr_num_playlists; j++) {
 					for (var j = 0; j < curr_num_playlists; j++) {
@@ -593,7 +593,7 @@ async function addPlaylistsToDB(num_playlists, response, accessToken) {
 							const public = curr_playlist.public
 				
 							// now build query
-							const query = `INSERT INTO playlists (name, playlist_id, public) VALUES ('${name}', '${playlist_id}', ${public}) RETURNING *;`;
+							const query = `INSERT INTO playlists (name, owner, playlist_id, public) VALUES ('${name}', '${uid}', '${playlist_id}', ${public}) RETURNING *;`;
 							db.one(query)
 							.then(data => {
 								// playlist has been inserted. now to add songs from this specific playlist
@@ -618,7 +618,7 @@ async function addPlaylistsToDB(num_playlists, response, accessToken) {
 }
 
 
-async function addSongsFromPlaylist(playlistId, accessToken) {
+async function addSongsFromPlaylist(playlistId, accessToken, uid) {
 	const options = {
 		headers: {
 			'Authorization': `Bearer ${accessToken}`
@@ -655,9 +655,9 @@ async function addSongsFromPlaylist(playlistId, accessToken) {
 				const popularity = parseInt(curr_song.popularity, 10);
 				
 				const query = `INSERT INTO playlist_songs 
-				                   (name, duration, artist, song_id, album_name, album_release, added_at, popularity, playlist_id) 
+				                   (name, owner, duration, artist, song_id, album_name, album_release, added_at, popularity, playlist_id) 
 								   VALUES
-								   ('${name}', ${duration}, '${first_artist}', '${song_id}', '${album_name}', '${album_release}', '${added_at}', ${popularity}, '${playlistId}')
+								   ('${name}', '${uid}', ${duration}, '${first_artist}', '${song_id}', '${album_name}', '${album_release}', '${added_at}', ${popularity}, '${playlistId}')
 							   RETURNING *;`;
 				db.one(query)
 				.then(data => {
