@@ -112,7 +112,7 @@ app.get('/features', (req, res) => {
 });
 
 app.get('/makePlaylist', (req, res) => {
-	const playlist_query = `SELECT * FROM playlists WHERE owner = '${req.session.uid}';`;
+	const playlist_query = `SELECT * FROM playlists WHERE playlists.owner = '${req.session.uid}';`;
 	const currentPage = req.path;
 	// console.log(currentPage);
 
@@ -136,7 +136,7 @@ app.get('/makePlaylist', (req, res) => {
 });
 
 app.get('/playlistEditor', (req, res) => {
-	const playlist_query = `SELECT * FROM playlists WHERE owner = '${req.session.uid}';`;
+	const playlist_query = `SELECT * FROM playlists WHERE playlists.owner = '${req.session.uid}';`;
 	const currentPage = req.path;
 	// console.log(currentPage);
 
@@ -157,7 +157,7 @@ app.get('/playlistEditor', (req, res) => {
 });
 
 app.get('/delete', (req, res) => {
-	const playlist_query = `SELECT * FROM playlists WHERE owner = '${req.session.uid}';`;
+	const playlist_query = `SELECT * FROM playlists WHERE playlists.owner = '${req.session.uid}';`;
 	const currentPage = req.path;
 	// console.log(currentPage);
 
@@ -183,8 +183,8 @@ app.post('/getSongs', (req, res) => {
 	// console.log("chosen id:", playlistId);
 	const playlistName = req.body.name;
 	const currentPage = req.body.currentPage; // Gets the path of the current request
-	const playlist_query = `SELECT * FROM playlists WHERE owner = '${req.session.uid}';`;
-	const songs_query = `SELECT * FROM playlist_songs WHERE playlist_id = '${playlistId}' AND owner = '${req.session.uid}';`;
+	const playlist_query = `SELECT * FROM playlists WHERE playlists.owner = '${req.session.uid}';`;
+	const songs_query = `SELECT * FROM playlist_songs WHERE playlist_id = '${playlistId}' AND playlist_songs.owner = '${req.session.uid}';`;
 	// console.log('current page: ', currentPage);
 
 	// console.log('Selected Playlist ID:', playlistId);
