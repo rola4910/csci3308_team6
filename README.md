@@ -15,23 +15,33 @@ Contributors:
 
 
 Technology Stack Used:
-- to be added
+- Javascript
+- Handlebars.js
+- Postgres SQL
+- HTML/CSS
+- Chai/Mocha testing
+- Render hostings
 
 
 Prerequisites to Run the Application:
-- to be added
+- Have an existing Spotify account
+- Docker installed
 
 
 Instructions on how to run the application locally:
-- to be added
+- clone the repository and cd into ProjectSourceCode
+- run `docker-compose down -v ; docker-compose up -d` in a Powershell terminal
+- view docker logs to see when the connection to port 3000 is successful and the app can be viewed
+- when done, navigate to localhost:3000 in a web browser to view the application
 
 
 How to run the tests:
-- to be added
+- In the docker-compose.yaml, change the web command to be `npm run testandrun` instead of `npm start`
+- run the app like normal and view the logs to see passing and failing tests
   
 
 Link to the deployed application:
-- to be added
+- https://csci3308-team6.onrender.com/
 
 
 Relase Notes:
