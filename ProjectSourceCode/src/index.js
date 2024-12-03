@@ -595,9 +595,9 @@ async function addPlaylistsToDB(num_playlists, response, accessToken, uid) {
         // first set of 50. do not need a 'next' call as they are in response already
         for (var j = 0; j < 50; j++) {
           const curr_playlist = response.items[j];
-          if (curr_playlist == null) {
-            continue;
-          }
+          if (curr_playlist == null || curr_playlist == undefined) {
+			continue;
+		  }
 
           if (curr_playlist.tracks.total == 0) {
             // skip if no songs
@@ -638,18 +638,23 @@ async function addPlaylistsToDB(num_playlists, response, accessToken, uid) {
             Authorization: `Bearer ${accessToken}`,
           },
         };
-        if (curr_response.data.next == null) {
+
+        if (curr_response.next == null) {
           continue;
         }
-        curr_response = await axios.get(curr_response.data.next, options);
+
+        curr_response = await axios.get(curr_response.next, options);
         // console.log("current_response now:", curr_response.data);
 
         var curr_num_playlists = num_playlists % 50;
         // console.log("curr_num_playlists:", curr_num_playlists);
 
         for (var j = 0; j < curr_num_playlists; j++) {
-        // console.log(curr_response.items);
-          const curr_playlist = curr_response.items[j];
+        //   console.log(curr_response.data.items);
+          const curr_playlist = curr_response.data.items[j];
+		  if (curr_playlist == null || curr_playlist == undefined) {
+			continue;
+		  }
 
           if (curr_playlist.tracks.total == 0) {
             // skip if no songs
@@ -808,7 +813,7 @@ async function addSongsFromPlaylist(playlistId, accessToken, uid) {
           // any future iterations - must do a next call for any songs over 100
           // console.log('GOT TO ELSE after adding first 100 songs');
 
-          // console.log("current_response:", curr_response.data);
+        //   console.log("current_response:", curr_response.data);
           curr_response = await axios.get(curr_response.data.next, options);
 
           var curr_num_songs = num_songs % 100;
@@ -842,10 +847,10 @@ async function addSongsFromPlaylist(playlistId, accessToken, uid) {
             const popularity = parseInt(curr_song.popularity, 10);
 
             const query = `INSERT INTO playlist_songs 
-										   (name, owner, duration, artist, song_id, album_name, album_release, added_at, popularity, playlist_id) 
-										   VALUES
-										   ('${name}', '${uid}', ${duration}, '${first_artist}', '${song_id}', '${album_name}', '${album_release}', '${added_at}', ${popularity}, '${playlistId}')
-									   RETURNING *;`;
+						     (name, owner, duration, artist, song_id, album_name, album_release, added_at, popularity, playlist_id) 
+						   VALUES
+							 ('${name}', '${uid}', ${duration}, '${first_artist}', '${song_id}', '${album_name}', '${album_release}', '${added_at}', ${popularity}, '${playlistId}')
+						   RETURNING *;`;
             db.one(query)
               .then((data) => {
                 // 	console.log("Added in after i==0:", data);
@@ -868,6 +873,7 @@ async function addSongsFromPlaylist(playlistId, accessToken, uid) {
   }
 }
 
+
 function getSongs(playlistId) {
   const songs_query = `SELECT * FROM playlist_songs WHERE playlist_id = $1;`;
   return db
@@ -881,37 +887,13 @@ function getSongs(playlistId) {
     });
 }
 
-function createNewPlaylist(newPlaylistName) {
-  // const newPlaylistName = req.body.newName;
-  // const addNewPlaylistToDB = 'INSERT INTO users (name, playlist_id, public) VALUES ($1, $2, $3);';
-  // db.any(query, [newPlaylistName, NULL, true])
-  // .then(data => data)
-  // .catch(errerr => {
-  // 	console.log(err);
-  // 	res.status(400);
-  // 	res.render('pages/register', {
-  // 	  message: `Failed to add playlist to Database`
-  // 	});
-  //   });
-  // TODO: INSERT NEW PLAYLIST TRACKS INTO db
-}
 
-function addSongs(selectedSongs) {
-  // return new Promise((resolve, reject) => {
-  //     const query = 'INSERT INTO playlist_songs (...) VALUES (...)';
-  //     db.none(query, [/* song data */])
-  //         .then(resolve)
-  //         .catch(err => {
-  //             console.error('Error adding songs:', err);
-  //             reject(new Error('Failed to add songs to the playlist'));
-  //         });
-  // });
-}
 function deletePlaylist(playlistID) {
   // const deleteSongsQuery = 'DELETE FROM playlist_songs WHERE playlist_id = $1;';
   // const changePlaylistTitle = 'UPDATE playlists SET name = $1 WHERE playlist_id = $2;'
   // db.none()
 }
+
 
 // *****************************************************
 // <!-- Section 6 : Start Server-->
