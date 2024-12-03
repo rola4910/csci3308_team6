@@ -132,7 +132,54 @@ app.get('/makePlaylist', (req, res) => {
 			res.status(500).send('Error retrieving playlists');
 		});
 
+})
 
+app.post('/makePlaylist',  (req, res) => {
+	const playlist_query = 'SELECT * FROM playlists;';
+    const currentPage = req.path;
+    const selectedPlaylistId =  req.body.id; // Retrieve playlist_id from query params
+	const newPlaylistName = req.body.newName;
+	const selectedSongs = req.body.tracks;
+
+    // If a playlist is selected, get its songs
+    const getSongsPromise = selectedPlaylistId
+        ? getSongs(selectedPlaylistId)
+        : Promise.resolve([]); // No playlist selected, return an empty array
+	// // FIXME: If a new playlist name has been submitted call createNewPlaylist
+	// const createPlaylistPromise = newPlaylistName
+    //     ? createNewPlaylist(newPlaylistName)
+	// 	: Promise.resolve(); // no new name entered return an empty object?
+	// // 	//FIXME: add an error message to the resolve if the query fails
+
+	// //add songs promise
+	// const addSongsPromise = selectedSongs
+	// 	? addSongs(selectedSongs)
+	// 	: Promise.resolve(); // if query fails return an err message
+
+    // Fetch playlists and songs in parallel
+    Promise.all([
+		
+		getSongsPromise,
+		// createPlaylistPromise,
+		//addSongsPromise,
+		db.any(playlist_query)
+		
+	])
+	.then(([playlist_songs, playlists ]) => {
+		res.render('pages/makePlaylist', {
+			
+			// currentPage: currentPage,
+			// selectedPlaylistId: selectedPlaylistId || null,
+			playlists: playlists,
+			playlist_songs: playlist_songs || []
+			
+			// selectedSongs: selectedSongs || []
+		});
+	})
+	.catch(err => {
+		console.error(err);
+		res.status(500).send('Error retrieving playlists and songs');
+	});
 });
 
 app.get('/playlistEditor', (req, res) => {
@@ -142,7 +189,6 @@ app.get('/playlistEditor', (req, res) => {
 
 	db.any(playlist_query)
 		.then(data => {
-			// console.log("playlistEditor:", data[1].name)
 			const playlists = data;
 			// Render the makePlaylist page with the playlists and playlist songs
 			res.render('pages/playlistEditor', {
@@ -231,7 +277,7 @@ app.post('/addSongs', (req, res) => {
 
 
 app.get('/login', function (req, res) {
-	res.render('pages/login', {bodyId: 'login-page'});
+	res.render('pages/login', { bodyId: 'login-page' });
 });
 
 
@@ -440,7 +486,7 @@ const monitorTokens = (req) => {
 	setInterval(async () => {
 		console.log('Checking for expiry...')
 		const currentTime = Date.now();
-		const timeDiff = currentTime-req.session.start_time;
+		const timeDiff = currentTime - req.session.start_time;
 		const accessTokenExpiry = req.session.access_token_expiry * 1000; // convert token expiration time to milliseconds
 
 		// If the access token is about to expire (5 minutes left)
@@ -669,7 +715,7 @@ async function addSongsFromPlaylist(playlistId, accessToken, uid) {
 				const album_release = curr_song.album.release_date;
 				const added_at = response.data.items[i].added_at;
 				const popularity = parseInt(curr_song.popularity, 10);
-				
+
 				const query = `INSERT INTO playlist_songs 
 				                   (name, owner, duration, artist, song_id, album_name, album_release, added_at, popularity, playlist_id) 
 								   VALUES
@@ -806,7 +852,54 @@ async function addSongsFromPlaylist(playlistId, accessToken, uid) {
 	}
 }
 
+function getSongs(playlistId) {
+    const songs_query = `SELECT * FROM playlist_songs WHERE playlist_id = $1;`;
+    return db.any(songs_query, [playlistId])
+        .then(data => {
+			return data;
+		}) // Return the data
+        .catch(err => {
+            console.error(err);
+            throw err; // Rethrow to handle in the caller
+        });	
+}
 
+function createNewPlaylist(newPlaylistName){
+	// const newPlaylistName = req.body.newName;
+	// const addNewPlaylistToDB = 'INSERT INTO users (name, playlist_id, public) VALUES ($1, $2, $3);';
+	// db.any(query, [newPlaylistName, NULL, true])
+	// .then(data => data)
+	// .catch(errerr => {
+	// 	console.log(err);
+	// 	res.status(400);
+	// 	res.render('pages/register', {
+	// 	  message: `Failed to add playlist to Database`
+	// 	});
+	//   });
+	
+		
+	// TODO: INSERT NEW PLAYLIST TRACKS INTO db
+}
+
+function addSongs(selectedSongs){
+    // return new Promise((resolve, reject) => {
+    //     const query = 'INSERT INTO playlist_songs (...) VALUES (...)';
+    //     db.none(query, [/* song data */])
+    //         .then(resolve)
+    //         .catch(err => {
+    //             console.error('Error adding songs:', err);
+    //             reject(new Error('Failed to add songs to the playlist'));
+    //         });
+    // });
+
+}
+function deletePlaylist(playlistID)
+{
+	// const deleteSongsQuery = 'DELETE FROM playlist_songs WHERE playlist_id = $1;';
+	// const changePlaylistTitle = 'UPDATE playlists SET name = $1 WHERE playlist_id = $2;'
+
+	// db.none()
+}
 
 // *****************************************************
 // <!-- Section 6 : Start Server-->

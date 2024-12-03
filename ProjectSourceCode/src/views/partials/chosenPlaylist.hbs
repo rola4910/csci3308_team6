@@ -13,19 +13,20 @@
             </li>
 
             <!-- Example Playlist Songs -->
-            <ul class="list-group list-group-flush">
-                {{#each playlist_songs}}
-                <li id="song-list-group"
-                    class="list-group-item d-flex justify-content-between">
-                    <button class="song-selector"
-                        style="background-color: transparent"
-                        onclick="colorChange(event)"></button>
-                    <span>{{this.name}}</span>
-                    <span>{{this.artist}}</span>
-                    <span>{{this.album_release}}</span>
-                </li>
-                {{/each}}
-            </ul>
+            <form action="/makePlaylist" method="POST">
+                <ul class="list-group list-group-flush">
+                    {{#each playlist_songs}}
+                    <li id="song-list-group"
+                        class="list-group-item d-flex justify-content-between">
+                        <input id={{this}} type="checkbox" name="tracks" value={{this}}>
+                        <span>{{this.name}}</span>
+                        <span>{{this.artist}}</span>
+                        <span>{{this.album_release}}</span>
+                    </li>
+                    {{/each}}
+                </ul>
+                <button type="submit" class="btn">Add Selected Songs</button>
+            </form>
         </ul>
     </div>
 </div>
