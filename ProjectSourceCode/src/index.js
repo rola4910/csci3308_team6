@@ -484,12 +484,11 @@ async function addPlaylistsToDB(num_playlists, response, accessToken, uid) {
 		// console.log('num_playlists < 50');
 		for (var i = 0; i < num_playlists; i++) {
 			const curr_playlist = response.items[i];
-			// console.log("CURRENT PLAYLIST:\n", curr_playlist, "\n\n");
-	
-			if (curr_playlist == null || curr_playlist == undefined) {  // skip if null or undef?
+			console.log("CURRENT PLAYLIST:\n", curr_playlist, "\n\n");
+			if (curr_playlist == null || curr_playlist == undefined) {
 				continue;
 			}
-
+	
 			if (curr_playlist.tracks.total == 0) {  // skip if no songs
 				continue;
 			}
