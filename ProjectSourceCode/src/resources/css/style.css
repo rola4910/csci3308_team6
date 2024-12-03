@@ -95,11 +95,6 @@
     transform-origin: center bottom;
 }
 
-body {
-    height: 100%;
-    overflow-y: hidden;
- }
-
 @keyframes stretchTop {
     0% { transform: scaleY(1); }
     25% { transform: scaleY(1.05); }
