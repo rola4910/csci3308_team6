@@ -144,72 +144,55 @@ app.post('/makePlaylist', (req, res) => {
 		: req.body.tracks
 			? [req.body.tracks] // Wrap single value in an array
 			: [];
-	
-	// DEBUG
-	console.log('Selected Songs:', selectedSongs);
+
 
 	if (!req.session.draftPlaylist) {
 		req.session.draftPlaylist = [];
 	}
-	
+
 
 	// If a playlist is selected, get its songs
 	const getSongsPromise = selectedPlaylistId
 		? getSongs(selectedPlaylistId)
 		: Promise.resolve([]); // No playlist selected, return an empty array
 
-	//add songs promise
-	// if (selectedSongs.length > 0) {
-		var chosenSongsPromise = selectedSongs.length
-			? chosenSongs(selectedSongs)
-			: Promise.resolve([]);
-	// }
+	var chosenSongsPromise = selectedSongs.length
+		? chosenSongs(selectedSongs)
+		: Promise.resolve([]);
 
-	// console.log('Request Body:', req.body);
-	// console.log('Selected Songs:', selectedSongs);
-	// Fetch playlists and songs in parallel
+
 
 	Promise.all([
 		getSongsPromise,
 		db.any(playlist_query),
 		chosenSongs(selectedSongs)
 	])
-		.then(([playlist_songs, playlists, chosenSongs]) => {
-			console.log('Before chosenSongs processing:', chosenSongs);
+		.then(([playlist_songs, playlists, chosenSongs, newPlaylistName]) => {
+
 
 			if (chosenSongs && Array.isArray(chosenSongs)) {
-				console.log('TEST')
-                chosenSongs.forEach((song) => {
-                    if (!req.session.draftPlaylist.some((s) => s.song_id === song.song_id)) {
-						console.log('TEST 2')
-                        req.session.draftPlaylist.push(song);
-                    }
-                });
-            }
-			console.log('After chosenSongs processing:', req.session.draftPlaylist);
-
-			// console.log('Updated draftPlaylist:', draftPlaylist);
+				chosenSongs.forEach((song) => {
+					if (!req.session.draftPlaylist.some((s) => s.song_id === song.song_id)) {
+						req.session.draftPlaylist.push(song);
+					}
+				});
+			}
 
 			// req.session.draftPlaylist = draftPlaylist;
 			req.session.save((err) => {
-                if (err) {
-                    console.error('Error saving session:', err);
-                } else {
-                    console.log('Session saved successfully:', req.session.draftPlaylist);
-                }
-            });
-
-			// console.log('BEFORE RENDER: ', draftPlaylist);
+				if (err) {
+					console.error('Error saving session:', err);
+				}
+			});
 
 			res.render('pages/makePlaylist', {
 				// currentPage: currentPage,
 				// selectedPlaylistId: selectedPlaylistId || null,
 				playlists: playlists,
 				playlist_songs: playlist_songs || [],
-				draftPlaylist: req.session.draftPlaylist || []
+				draftPlaylist: req.session.draftPlaylist || [],
+				newPlaylistName: newPlaylistName
 			});
-			// console.log('SHIT:', req.body),
-			// console.log('HELP:', draftPlaylist)
 		})
 		.catch(err => {
 			console.error(err);
@@ -220,7 +203,6 @@ app.post('/makePlaylist', (req, res) => {
 app.get('/playlistEditor', (req, res) => {
 	const playlist_query = `SELECT * FROM playlists WHERE playlists.owner = '${req.session.uid}';`;
 	const currentPage = req.path;
-	// console.log(currentPage);
 
 	db.any(playlist_query)
 		.then(data => {
@@ -614,7 +596,7 @@ async function addPlaylistsToDB(num_playlists, response, accessToken, uid) {
 				curr_response = await axios.get(curr_response.data.next, options);
 				// console.log("current_response now:", curr_response.data);
 
-				var curr_num_playlists =num_playlists % 50;
+				var curr_num_playlists = num_playlists % 50;
 				// console.log("curr_num_playlists:", curr_num_playlists);
 
 				for (var j = 0; j < curr_num_playlists; j++) {
@@ -853,23 +835,21 @@ function getSongs(playlistId) {
 }
 
 function chosenSongs(selectedSongs) {
-	console.log('Inside chosenSongs - Selected Songs:', selectedSongs); // Log input
 
 	const selectedSongsQuery = `SELECT name, artist, album_release, song_id FROM playlist_songs WHERE song_id = ANY($1::varchar[]);`;
 
 	if (selectedSongs.length === 0) {
-        console.log('No songs selected');
-        return Promise.resolve([]);
-    }
-    return db.any(selectedSongsQuery, [selectedSongs])
-        .then(data => {
-            console.log('Chosen Songs Query Result:', data); // Log query result
-            return data;
-        })
-        .catch(err => {
-            console.error('Error in chosenSongs:', err); // Log errors
-            throw err;
-        });
+		return Promise.resolve([]);
+	}
+	return db.any(selectedSongsQuery, [selectedSongs])
+		.then(data => {
+			console.log('Chosen Songs Query Result:', data); // Log query result
+			return data;
+		})
+		.catch(err => {
+			console.error('Error in chosenSongs:', err); // Log errors
+			throw err;
+		});
 }
 
 function deletePlaylist(playlistID) {
