@@ -843,7 +843,6 @@ function chosenSongs(selectedSongs) {
 	}
 	return db.any(selectedSongsQuery, [selectedSongs])
 		.then(data => {
-			console.log('Chosen Songs Query Result:', data); // Log query result
 			return data;
 		})
 		.catch(err => {
