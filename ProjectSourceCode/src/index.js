@@ -149,6 +149,9 @@ app.post('/makePlaylist', (req, res) => {
 	if (!req.session.draftPlaylist) {
 		req.session.draftPlaylist = [];
 	}
+	if (newPlaylistName) {
+        req.session.newPlaylistName = newPlaylistName;
+    }
 
 
 	// If a playlist is selected, get its songs
@@ -191,7 +194,7 @@ app.post('/makePlaylist', (req, res) => {
 				playlists: playlists,
 				playlist_songs: playlist_songs || [],
 				draftPlaylist: req.session.draftPlaylist || [],
-				newPlaylistName: newPlaylistName
+				newPlaylistName: req.session.newPlaylistName
 			});
 		})
 		.catch(err => {
