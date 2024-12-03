@@ -28,16 +28,9 @@ const generateRandomString = (length) => {
 };
 
 const clientId = "c25f72fe66174e8ab75756ddc591301f";
-<<<<<<< HEAD
 const redirectUri = "http://localhost:3000/callback"; // local redirect
 // const redirectUri = "https://csci3308-team6.onrender.com/callback";
 const scope = "user-read-private user-read-email playlist-read-private playlist-modify-public playlist-modify-private";
-=======
-// const redirectUri = "http://localhost:3000/callback"; // local redirect
-const redirectUri = "https://csci3308-team6.onrender.com/callback";
-const scope =
-  "user-read-private user-read-email playlist-read-private playlist-modify-public playlist-modify-private";
->>>>>>> playlist-to-db
 const clientSecret = "07e098d9c6d7421494042196d2b322fd";
 
 // *****************************************************
