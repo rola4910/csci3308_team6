@@ -18,15 +18,15 @@
                     <span>Release Date</span>
                 </li>
             </ul>
-            {{#if selectedSongs.length}}
+            {{#if draftPlaylist}}
             {{!-- FIXME: DOESNT WORK BC THIS  IS HOW IT WORKS WHEN THE SONGS ARE IN THE DB ADD SONGS TO DB IN ADDSONGS ROUTE THEN THIS WILL WORK --}}
-            {{#each selectedSongs}}
+            {{#each draftPlaylist}}
             
             <li id="song-list-group"
                 class="list-group-item d-flex justify-content-between">
-                <span>{{this.tracks.name}}</span>
-                <span>{{this.tracks.artists.name}}</span>
-                <span>{{this.tracks.album.release_date}}</span>
+                <span>{{this.name}}</span>
+                <span>{{this.artist}}</span>
+                <span>{{this.album_release}}</span>
             </li>
             {{/each}}
             {{/if}}
