@@ -27,8 +27,8 @@ const generateRandomString = (length) => {
 }
 
 const clientId = "c25f72fe66174e8ab75756ddc591301f";
-// const redirectUri = "http://localhost:3000/callback"; // local redirect
-const redirectUri = "https://csci3308-team6.onrender.com/callback";
+const redirectUri = "http://localhost:3000/callback"; // local redirect
+// const redirectUri = "https://csci3308-team6.onrender.com/callback";
 const scope = 'user-read-private user-read-email playlist-read-private playlist-modify-public playlist-modify-private';
 const clientSecret = '07e098d9c6d7421494042196d2b322fd';
 
@@ -45,8 +45,8 @@ const hbs = handlebars.create({
 
 // database configuration
 const dbConfig = {
-	// host: 'db', // the database server local
-	host: 'dpg-ct0bpclumphs73f3qem0-a',
+	host: 'db', // the database server local
+	// host: 'dpg-ct0bpclumphs73f3qem0-a',
 	port: 5432, // the database port
 	database: process.env.POSTGRES_DB, // the database name
 	user: process.env.POSTGRES_USER, // the user account to connect with
@@ -534,6 +534,9 @@ async function addPlaylistsToDB(num_playlists, response, accessToken, uid) {
 			if (i == 0) { // first set of 50. do not need a 'next' call as they are in response already
 				for (var j = 0; j < 50; j++) {
 					const curr_playlist = response.items[j];
+					if (curr_playlist == null) {
+						continue;
+					}
 	
 					if (curr_playlist.tracks.total == 0) {  // skip if no songs
 						continue;
@@ -573,6 +576,9 @@ async function addPlaylistsToDB(num_playlists, response, accessToken, uid) {
 					headers: {
 						'Authorization': `Bearer ${accessToken}`
 					}
+				}
+				if (curr_response.data.next == null) {
+					continue;
 				}
 				curr_response = await axios.get(curr_response.data.next, options);
 				// console.log("current_response now:", curr_response.data);
@@ -639,7 +645,9 @@ async function addSongsFromPlaylist(playlistId, accessToken, uid) {
 			// console.log("num_songs <= 100 for", playlistId);
 			for (var i = 0; i < num_songs; i++) {	
 				const curr_song = response.data.items[i].track;
-
+				if (curr_song == null) {
+					continue;
+				}
 				var name = curr_song.name;
 				if ((name).includes("'")) {
 					name = name.replace(/'/g, "''");
@@ -694,7 +702,9 @@ async function addSongsFromPlaylist(playlistId, accessToken, uid) {
 					console.log("i==0 next call for songs");
 					for (var j = 0; j < 100; j++) {
 						const curr_song = curr_response.data.items[j].track;
-
+						if (curr_song == null) {
+							continue;
+						}
 						var name = curr_song.name;
 						if ((name).includes("'")) {
 							name = name.replace(/'/g, "''");
@@ -744,7 +754,9 @@ async function addSongsFromPlaylist(playlistId, accessToken, uid) {
 					for (var j = 0; j < curr_num_songs; j++) {
 						const curr_song = curr_response.data.items[j].track;
 						// console.log("curr_song:", curr_song);
-
+						if (curr_song == null) {
+							continue;
+						}
 						var name = curr_song.name;
 						if ((name).includes("'")) {
 							name = name.replace(/'/g, "''");
