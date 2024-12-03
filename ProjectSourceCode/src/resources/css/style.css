@@ -63,7 +63,13 @@
     border: none;
     background-color: transparent;  
 }
-
+#reg-txt
+{
+    font-size: 14px;
+    font-family: 'Minecraft', sans-serif;
+    color: rgb(30 215 96);
+    margin-left: -50px;
+}
 
 /* TESTING FLAME ANIMATION */
 @keyframes flicker {
@@ -94,8 +100,6 @@
     animation: stretchTop 1.5s infinite ease-in-out alternate;
     transform-origin: center bottom;
 }
-
-
 
 @keyframes stretchTop {
     0% { transform: scaleY(1); }
