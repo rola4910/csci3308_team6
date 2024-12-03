@@ -100,15 +100,15 @@ app.use('/resources', express.static(path.join(__dirname, 'resources')));
 // *****************************************************
 app.get('/', async function (req, res) {
 	if (req.session.access_token != null) {
-		res.render('pages/login');
+		res.redirect('/home');
 	}
 	else {
 		res.redirect('/login');
 	}
 });
 
-app.get('/features', (req, res) => {
-	res.render('pages/features');
+app.get('/home', (req, res) => {
+	res.render('pages/home');
 });
 
 app.get('/makePlaylist', (req, res) => {
@@ -386,7 +386,7 @@ app.get('/getUserPlaylists', async (req, res) => {
 		// console.log('TOTAL : ', total_playlists);
 
 		addPlaylistsToDB(total_playlists, response.data, req.session.access_token, req.session.uid);
-		res.redirect('/');
+		res.redirect('/home');
 
 	} catch (error) {
 		console.error(error);
