@@ -265,49 +265,70 @@ app.get("/makePlaylist", (req, res) => {
     });
 });
 
-app.post("/makePlaylist", (req, res) => {
-  const playlist_query = "SELECT * FROM playlists;";
-  const currentPage = req.path;
-  const selectedPlaylistId = req.body.id; // Retrieve playlist_id from query params
-  const newPlaylistName = req.body.newName;
-  const selectedSongs = req.body.tracks;
+app.post('/makePlaylist', (req, res) => {
+	const playlist_query = 'SELECT * FROM playlists;';
+	const currentPage = req.path;
+	const selectedPlaylistId = req.body.id; // Retrieve playlist_id from query params
+	const newPlaylistName = req.body.newName;
+	const selectedSongs = Array.isArray(req.body.tracks)
+		? req.body.tracks
+		: req.body.tracks
+			? [req.body.tracks] // Wrap single value in an array
+			: [];
 
-  // If a playlist is selected, get its songs
-  const getSongsPromise = selectedPlaylistId
-    ? getSongs(selectedPlaylistId)
-    : Promise.resolve([]); // No playlist selected, return an empty array
-  // // FIXME: If a new playlist name has been submitted call createNewPlaylist
-  // const createPlaylistPromise = newPlaylistName
-  //     ? createNewPlaylist(newPlaylistName)
-  // 	: Promise.resolve(); // no new name entered return an empty object?
-  // // 	//FIXME: add an error message to the resolve if the query fails
 
-  // //add songs promise
-  // const addSongsPromise = selectedSongs
-  // 	? addSongs(selectedSongs)
-  // 	: Promise.resolve(); // if query fails return an err message
+	if (!req.session.draftPlaylist) {
+		req.session.draftPlaylist = [];
+	}
 
-  // Fetch playlists and songs in parallel
-  Promise.all([
-    getSongsPromise,
-    // createPlaylistPromise,
-    //addSongsPromise,
-    db.any(playlist_query),
-  ])
-    .then(([playlist_songs, playlists]) => {
-      res.render("pages/makePlaylist", {
-        // currentPage: currentPage,
-        // selectedPlaylistId: selectedPlaylistId || null,
-        playlists: playlists,
-        playlist_songs: playlist_songs || [],
 
-        // selectedSongs: selectedSongs || []
-      });
-    })
-    .catch((err) => {
-      console.error(err);
-      res.status(500).send("Error retrieving playlists and songs");
-    });
+	// If a playlist is selected, get its songs
+	const getSongsPromise = selectedPlaylistId
+		? getSongs(selectedPlaylistId)
+		: Promise.resolve([]); // No playlist selected, return an empty array
+
+	var chosenSongsPromise = selectedSongs.length
+		? chosenSongs(selectedSongs)
+		: Promise.resolve([]);
+
+
+
+	Promise.all([
+		getSongsPromise,
+		db.any(playlist_query),
+		chosenSongs(selectedSongs)
+	])
+		.then(([playlist_songs, playlists, chosenSongs, newPlaylistName]) => {
+
+
+			if (chosenSongs && Array.isArray(chosenSongs)) {
+				chosenSongs.forEach((song) => {
+					if (!req.session.draftPlaylist.some((s) => s.song_id === song.song_id)) {
+						req.session.draftPlaylist.push(song);
+					}
+				});
+			}
+
+			// req.session.draftPlaylist = draftPlaylist;
+			req.session.save((err) => {
+				if (err) {
+					console.error('Error saving session:', err);
+				}
+			});
+
+			res.render('pages/makePlaylist', {
+				 currentPage: currentPage,
+				// selectedPlaylistId: selectedPlaylistId || null,
+				playlists: playlists,
+				playlist_songs: playlist_songs || [],
+				draftPlaylist: req.session.draftPlaylist || [],
+				newPlaylistName: newPlaylistName
+			});
+		})
+		.catch(err => {
+			console.error(err);
+			res.status(500).send('Error retrieving playlists and songs');
+		});
 });
 
 app.get("/playlistEditor", (req, res) => {
@@ -637,11 +658,12 @@ async function addPlaylistsToDB(num_playlists, response, accessToken, uid) {
             Authorization: `Bearer ${accessToken}`,
           },
         };
-        if (curr_response.data.next == null) {
+		// console.log(curr_response);
+        if (curr_response.next == null) {
           continue;
         }
-        curr_response = await axios.get(curr_response.data.next, options);
-        // console.log("current_response now:", curr_response.data);
+        curr_response = await axios.get(curr_response.next, options);
+        console.log("current_response now:", curr_response.data);
 
         var curr_num_playlists = num_playlists % 50;
         // console.log("curr_num_playlists:", curr_num_playlists);
@@ -880,11 +902,40 @@ function getSongs(playlistId) {
     });
 }
 
-function deletePlaylist(playlistID) {
-  // const deleteSongsQuery = 'DELETE FROM playlist_songs WHERE playlist_id = $1;';
-  // const changePlaylistTitle = 'UPDATE playlists SET name = $1 WHERE playlist_id = $2;'
-  // db.none()
+function chosenSongs(selectedSongs) {
+
+	const selectedSongsQuery = `SELECT name, artist, album_release, song_id FROM playlist_songs WHERE song_id = ANY($1::varchar[]);`;
+
+	if (selectedSongs.length === 0) {
+		return Promise.resolve([]);
+	}
+	return db.any(selectedSongsQuery, [selectedSongs])
+		.then(data => {
+			return data;
+		})
+		.catch(err => {
+			console.error('Error in chosenSongs:', err); // Log errors
+			throw err;
+		});
 }
+
+function deletePlaylist(playlistID) {
+	const deleteSongsQuery = 'DELETE FROM playlist_songs WHERE playlist_id = $1;';
+	const changePlaylistTitle = 'UPDATE playlists SET name = $1 WHERE playlist_id = $2;';
+	const deletedName = 'deleted';
+  
+	db.batch([
+	  db.none(deleteSongsQuery, [playlistID]),
+	  db.none(changePlaylistTitle, [deletedName, playlistID])
+	])
+	  .then(() => {
+		console.log('Songs deleted and playlist name updated successfully.');
+	  })
+	  .catch((err) => {
+		console.error('Error processing deletePlaylist:', err);
+	  });
+  }
+  
 
 // *****************************************************
 // <!-- Section 6 : Start Server-->
