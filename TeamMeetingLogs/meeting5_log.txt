@@ -1,1 +1,11 @@
+- Create a login page to connect with spotify
 
+- Create Homepage after login
+
+- Create a playlist create page
+
+- Create songlist page
+
+- Delete playlist page(delete all songs and leave playlist empty)
+
+- Delete playlist endpoint
