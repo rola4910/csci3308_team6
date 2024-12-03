@@ -8,7 +8,7 @@ CREATE TABLE playlists (
 
 DROP TABLE IF EXISTS playlist_songs;
 CREATE TABLE playlist_songs (
-    id SERIAL PRIMARY KEY,
+    -- id SERIAL PRIMARY KEY,
     name VARCHAR(256) NOT NULL,
     duration INTEGER NOT NULL,
     artist VARCHAR(256) NOT NULL,

@@ -130,52 +130,54 @@ app.get('/makePlaylist', (req, res) => {
 
 })
 
-app.post('/makePlaylist',  (req, res) => {
+app.post('/makePlaylist', (req, res) => {
 	const playlist_query = 'SELECT * FROM playlists;';
-    const currentPage = req.path;
-    const selectedPlaylistId =  req.body.id; // Retrieve playlist_id from query params
+	const currentPage = req.path;
+	const selectedPlaylistId = req.body.id; // Retrieve playlist_id from query params
 	const newPlaylistName = req.body.newName;
-	const selectedSongs = req.body.tracks;
+	const selectedSongs = Array.isArray(req.body.tracks)
+		? req.body.tracks
+		: req.body.tracks
+		? [req.body.tracks] // Wrap single value in an array
+		: [];
 
-    // If a playlist is selected, get its songs
-    const getSongsPromise = selectedPlaylistId
-        ? getSongs(selectedPlaylistId)
-        : Promise.resolve([]); // No playlist selected, return an empty array
-	// // FIXME: If a new playlist name has been submitted call createNewPlaylist
-	// const createPlaylistPromise = newPlaylistName
-    //     ? createNewPlaylist(newPlaylistName)
-	// 	: Promise.resolve(); // no new name entered return an empty object?
-	// // 	//FIXME: add an error message to the resolve if the query fails
+	// If a playlist is selected, get its songs
+	const getSongsPromise = selectedPlaylistId
+		? getSongs(selectedPlaylistId)
+		: Promise.resolve([]); // No playlist selected, return an empty array
 
-	// //add songs promise
-	// const addSongsPromise = selectedSongs
-	// 	? addSongs(selectedSongs)
-	// 	: Promise.resolve(); // if query fails return an err message
+	//add songs promise
+	const chosenSongsPromise = selectedSongs
+		? chosenSongs(selectedSongs)
+		: Promise.resolve([]);
 
-    // Fetch playlists and songs in parallel
-    Promise.all([
-		
+	console.log('Request Body:', req.body);
+	console.log('Selected Songs:', selectedSongs);
+	// Fetch playlists and songs in parallel
+
+	Promise.all([
 		getSongsPromise,
 		// createPlaylistPromise,
-		//addSongsPromise,
-		db.any(playlist_query)
-		
+		db.any(playlist_query),
+		chosenSongsPromise
+
 	])
-	.then(([playlist_songs, playlists ]) => {
-		res.render('pages/makePlaylist', {
-			
-			// currentPage: currentPage,
-			// selectedPlaylistId: selectedPlaylistId || null,
-			playlists: playlists,
-			playlist_songs: playlist_songs || []
-			
-			// selectedSongs: selectedSongs || []
+		.then(([playlist_songs, playlists, selectedSongs]) => {
+			res.render('pages/makePlaylist', {
+
+				// currentPage: currentPage,
+				// selectedPlaylistId: selectedPlaylistId || null,
+				playlists: playlists,
+				playlist_songs: playlist_songs || [],
+				selectedSongs: selectedSongs || []
+			});
+			console.log('SHIT:', req.body),
+				console.log('HELP:', selectedSongs)
+		})
+		.catch(err => {
+			console.error(err);
+			res.status(500).send('Error retrieving playlists and songs');
 		});
-	})
-	.catch(err => {
-		console.error(err);
-		res.status(500).send('Error retrieving playlists and songs');
-	});
 });
 
 app.get('/playlistEditor', (req, res) => {
@@ -202,6 +204,9 @@ app.get('/delete', (req, res) => {
 	const playlist_query = 'SELECT * FROM playlists;';
 	const currentPage = req.path;
 	// console.log(currentPage);
+
+	
+
 
 	db.any(playlist_query)
 		.then(data => {
@@ -559,48 +564,33 @@ async function addSongsFromPlaylist(playlistId, accessToken) {
 }
 
 function getSongs(playlistId) {
-    const songs_query = `SELECT * FROM playlist_songs WHERE playlist_id = $1;`;
-    return db.any(songs_query, [playlistId])
-        .then(data => {
+	const songs_query = `SELECT * FROM playlist_songs WHERE playlist_id = $1;`;
+	return db.any(songs_query, [playlistId])
+		.then(data => {
 			return data;
 		}) // Return the data
-        .catch(err => {
-            console.error(err);
-            throw err; // Rethrow to handle in the caller
-        });	
+		.catch(err => {
+			console.error(err);
+			throw err; // Rethrow to handle in the caller
+		});
 }
 
-function createNewPlaylist(newPlaylistName){
-	// const newPlaylistName = req.body.newName;
-	// const addNewPlaylistToDB = 'INSERT INTO users (name, playlist_id, public) VALUES ($1, $2, $3);';
-	// db.any(query, [newPlaylistName, NULL, true])
-	// .then(data => data)
-	// .catch(errerr => {
-	// 	console.log(err);
-	// 	res.status(400);
-	// 	res.render('pages/register', {
-	// 	  message: `Failed to add playlist to Database`
-	// 	});
-	//   });
-	
-		
-	// TODO: INSERT NEW PLAYLIST TRACKS INTO db
+function chosenSongs(selectedSongs) {
+	const selectedSongsQuery = 'SELECT name, artist, album_release FROM playlist_songs WHERE song_id IN ($1:csv);';
+	if (selectedSongs.length === 0) {
+		return Promise.resolve([]);
+	}
+	return db.any(selectedSongsQuery, [selectedSongs])
+		.then(data => {
+			return data;
+		}) // Return the data
+		.catch(err => {
+			console.error(err);
+			throw err; // Rethrow to handle in the caller
+		});
 }
 
-function addSongs(selectedSongs){
-    // return new Promise((resolve, reject) => {
-    //     const query = 'INSERT INTO playlist_songs (...) VALUES (...)';
-    //     db.none(query, [/* song data */])
-    //         .then(resolve)
-    //         .catch(err => {
-    //             console.error('Error adding songs:', err);
-    //             reject(new Error('Failed to add songs to the playlist'));
-    //         });
-    // });
-
-}
-function deletePlaylist(playlistID)
-{
+function deletePlaylist(playlistID) {
 	// const deleteSongsQuery = 'DELETE FROM playlist_songs WHERE playlist_id = $1;';
 	// const changePlaylistTitle = 'UPDATE playlists SET name = $1 WHERE playlist_id = $2;'
 
