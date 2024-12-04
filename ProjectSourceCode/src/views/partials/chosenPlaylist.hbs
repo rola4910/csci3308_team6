@@ -15,6 +15,8 @@
             <!-- Example Playlist Songs -->
             <form action="/makePlaylist" method="POST">
                 <ul class="list-group list-group-flush">
+                    <input type="hidden" name="currentPage"
+                    value="{{currentPage}}">
                     {{#each playlist_songs}}
                     <li id="song-list-group"
                         class="list-group-item d-flex justify-content-between">

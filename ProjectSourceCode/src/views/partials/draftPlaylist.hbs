@@ -6,6 +6,8 @@
             <!-- Title element hidden initially -->
             {{else}}
             <form action="/makePlaylist" method="POST">
+                <input type="hidden" name="currentPage"
+                    value="{{../currentPage}}">
                 <input autocomplete="off" type="text" class="form-control mb-3"
                     id="playlist-name" name="newName"
                     placeholder="playlist Name">
@@ -19,7 +21,7 @@
                 </li>
             </ul>
             {{#if draftPlaylist}}
-            {{!-- FIXME: DOESNT WORK BC THIS  IS HOW IT WORKS WHEN THE SONGS ARE IN THE DB ADD SONGS TO DB IN ADDSONGS ROUTE THEN THIS WILL WORK --}}
+            <script>console.log("TESTER")</script>
             {{#each draftPlaylist}}
             
             <li id="song-list-group"
