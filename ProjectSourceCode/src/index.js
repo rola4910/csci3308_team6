@@ -456,8 +456,8 @@ const getRefreshToken = async (req) => {
 		}
 
 	} catch (error) {
-		console.error('Error refreshing token:', error);
-		throw new Error('Failed to refresh token');
+		console.log('Could not set track URI for playback');
+		console.log(error);
 	}
 }
 
@@ -483,6 +483,35 @@ const monitorTokens = (req) => {
 			}
 		}
 	}, 60 * 1000); // Check every 60 seconds
+};
+
+// TODO finish function
+async function setPlayerTrack(req) {
+	const device_id = req.device_id;
+	const context_uri = req.body.context_uri;
+	const track_uri = req.body.uris[0];
+	const offset = 0;
+
+	const options = {
+		headers: {
+			'Authorization': `Bearer ${access_token}`,
+			'Content-Type': 'application/json'
+		}	
+	};
+
+	const body = {
+		'context_uri': context_uri,
+		'uris': track_uri,
+		'position_ms': 0
+	}
+
+	try {
+		await axios.put(`https://api.spotify.com/v1/me/player/play`, body, options);
+		// const idk;
+	} catch (error) {
+		console.log(error);
+		return;
+	}
 };
 
 
