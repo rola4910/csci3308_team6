@@ -188,7 +188,7 @@ app.post('/getSongs', (req, res) => {
 		return task.batch([task.any(playlist_query), task.any(songs_query, playlistId)]);
 	})
 		.then(data => {
-			
+
 			const playlists = data[0];
 			const playlist_songs = data[1];
 
@@ -219,22 +219,22 @@ app.post('/getSongs', (req, res) => {
 app.get('/makeNewPlaylist', (req, res) => {
 	const newPlaylistName = req.body.newName;
 	const input = document.getElementById('playlist-name');
-    const title = document.getElementById('playlist-title');
+	const title = document.getElementById('playlist-title');
 
 	if (newPlaylistName) {
-        // Hide the input field and show the title with the entered name
-        input.classList.add('d-none');
-        title.classList.remove('d-none');
-        title.textContent = playlistName;
-    }
-	res.render('pages/makePlaylist', {newPlaylistName: newPlaylistName});
+		// Hide the input field and show the title with the entered name
+		input.classList.add('d-none');
+		title.classList.remove('d-none');
+		title.textContent = playlistName;
+	}
+	res.render('pages/makePlaylist', { newPlaylistName: newPlaylistName });
 	// INSERT NEW PLAYLIST TRACKS INTO db
 });
 // app.post('/login', (req, res) => {
 
 
 app.get('/login', function (req, res) {
-	res.render('pages/login', {bodyId: 'login-page'});
+	res.render('pages/login', { bodyId: 'login-page' });
 });
 
 
@@ -279,18 +279,18 @@ app.post('/register', async (req, res) => {
 	const query = `INSERT INTO users (username, password) VALUES ($1, $2) RETURNING *;`;
 	const values = [req.body.username, hash];
 	const user = await db.one(query, values)
-	.then(data => {
-		res.redirect(302, '/login');
-		// res.status(200);
-		console.log("Data added successfully.");
-	  })
-	  .catch(err => {
-		// console.log(err);
-		res.status(400);
-		res.render('pages/register', {
-		  message: `Invalid input`
+		.then(data => {
+			res.redirect(302, '/login');
+			// res.status(200);
+			console.log("Data added successfully.");
+		})
+		.catch(err => {
+			// console.log(err);
+			res.status(400);
+			res.render('pages/register', {
+				message: `Invalid input`
+			});
 		});
-	  });
 });
 
 
@@ -347,6 +347,7 @@ app.get('/callback', async function (req, res) {
 				req.session.refresh_token = response.data.refresh_token;
 				req.session.access_token_expiry = response.data.expires_in;
 				req.session.start_time = Date.now();
+				console.log(response.data.access_token);
 
 				res.redirect('/');
 				// res.send({
@@ -389,7 +390,7 @@ app.get('/getUserPlaylists', async (req, res) => {
 app.get('/player', (req, res) => {
 	const accessToken = req.session.access_token;
 
-    res.render('pages/player', { accessToken });
+	res.render('pages/player', { accessToken });
 });
 
 
@@ -398,8 +399,8 @@ app.get('/player', (req, res) => {
 // *****************************************************
 
 app.get('/welcome', (req, res) => {
-	res.json({status: 'success', message: 'Welcome!'});
-  });
+	res.json({ status: 'success', message: 'Welcome!' });
+});
 
 
 
@@ -467,7 +468,7 @@ const monitorTokens = (req) => {
 	setInterval(async () => {
 		console.log('Checking for expiry...')
 		const currentTime = Date.now();
-		const timeDiff = currentTime-req.session.start_time;
+		const timeDiff = currentTime - req.session.start_time;
 		const accessTokenExpiry = req.session.access_token_expiry * 1000; // convert token expiration time to milliseconds
 
 		// If the access token is about to expire (5 minutes left)
@@ -488,29 +489,51 @@ const monitorTokens = (req) => {
 // TODO finish function
 async function setPlayerTrack(req) {
 	const device_id = req.device_id;
-	const context_uri = req.body.context_uri;
-	const track_uri = req.body.uris[0];
+	const access_token = req.session.access_token;
+
+	const track_uri = getTrackURI(req.body.track_id);
+	console.log('TRACK URI: ', track_uri);
+
 	const offset = 0;
 
 	const options = {
 		headers: {
 			'Authorization': `Bearer ${access_token}`,
-			'Content-Type': 'application/json'
-		}	
+			'Content-Type': 'application/json',
+			'device_id': device_id
+		}
 	};
 
 	const body = {
-		'context_uri': context_uri,
 		'uris': track_uri,
 		'position_ms': 0
 	}
 
 	try {
 		await axios.put(`https://api.spotify.com/v1/me/player/play`, body, options);
-		// const idk;
+		return;
 	} catch (error) {
 		console.log(error);
 		return;
+	}
+};
+
+async function getTrackURI(track_id) {
+	const access_token = req.session.access_token;
+
+	const config = {
+		headers: {
+		  'Authorization': `Bearer ${access_token}`,
+		  'Content-Type': 'application/json'
+		}
+	  };
+
+	try {
+		const response = await axios.get(`https://api.spotify.com/v1/tracks/${track_id}`, config);
+		const uri = response.tracks[0].uri;
+		return [uri];
+	} catch (error) {
+		console.error(error);
 	}
 };
 
