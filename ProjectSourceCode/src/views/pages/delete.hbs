@@ -1,21 +1,15 @@
 <!-- DROP DOWN -->
-<div>
-  <br>
-  <div id="delete-dropdown" >
-      {{>dropdown id=id}}
-  </div>
-  <br>
 
-  <div id="delete-cancel-btns">
-    {{!-- <button id="cancel-btn"><i class="bi bi-box-arrow-in-left"></i></button> --}}
-    <button id="delete-btn" >{{>flame}}</button>
-  </div>
-  <div id="submit-delete-btn">
-    <form method="post" action="/deletePlaylist" style="display: inline;">
-      <input type="hidden" name="id" value="{{selectedPlaylistId}}">
-      <button type="submit">
-        Delete "playlist"
-      </button>
-    </form>
-  </div>
+<div class="container">
+    <h2>Delete Playlist</h2>
+    <div id="delete-dropdown">
+        <!-- Replace this placeholder with your dropdown component -->
+        {{>dropdown id=id}}
+    </div>
+    <div id="submit-delete-btn">
+        <form method="post" action="/deletePlaylist">
+            <input type="hidden" name="id" value="{{selectedPlaylistId}}">
+        <button id="delete-btn">{{>flame}}</button>
+        </form>
+    </div>
 </div>
