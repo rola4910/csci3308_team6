@@ -952,7 +952,7 @@ function getSongs(playlistId) {
 
 function chosenSongs(selectedSongs) {
 
-	const selectedSongsQuery = `SELECT name, artist, album_release, song_id FROM playlist_songs WHERE song_id = ANY($1::varchar[]);`;
+	const selectedSongsQuery = `SELECT name, artist, album_release, song_id, uri FROM playlist_songs WHERE song_id = ANY($1::varchar[]);`;
 
 	if (selectedSongs.length === 0) {
 		return Promise.resolve([]);
