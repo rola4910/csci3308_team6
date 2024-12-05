@@ -5,7 +5,9 @@
             <h3 id="playlist-title">{{newPlaylistName}}</h3>
             <!-- Title element hidden initially -->
             {{else}}
-            <form action="/makeNewPlaylist" method="POST">
+            <form action="/makePlaylist" method="POST">
+                <input type="hidden" name="currentPage"
+                    value="{{currentPage}}">
                 <input autocomplete="off" type="text" class="form-control mb-3"
                     id="playlist-name" name="newName"
                     placeholder="playlist Name">
@@ -18,10 +20,9 @@
                     <span>Release Date</span>
                 </li>
             </ul>
-            {{#if selectedSongs}}
-            {{!-- FIXME: DOESNT WORK BC THIS  IS HOW IT WORKS WHEN THE SONGS ARE IN THE DB ADD SONGS TO DB IN ADDSONGS ROUTE THEN THIS WILL WORK --}}
-            {{#each selectedSongs}}
-            
+            {{#if draftPlaylist}}
+            {{#each draftPlaylist}}
+
             <li id="song-list-group"
                 class="list-group-item d-flex justify-content-between">
                 <span>{{this.name}}</span>
@@ -31,5 +32,15 @@
             {{/each}}
             {{/if}}
         </div>
+        <form action="/makePlaylist" method="POST">
+            <input type="hidden" name="currentPage"
+                    value="{{currentPage}}">
+            <input type="hidden" name="toBeCleared"
+                    value="yes">
+            <input type="hidden" name="newName" value="{{newPlaylistName}}">
+
+            <button type="submit" class="btn">Clear Playlist</button>
+            
+        </form>
     </div>
 </div>

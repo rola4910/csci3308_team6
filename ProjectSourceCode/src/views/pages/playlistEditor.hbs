@@ -1,11 +1,18 @@
 <br>
-<div>
-    {{>dropdown}}
+<h1>HELLO</h1>
+<div class = "row">
+    <div class="col-sm-4 mb-3 mb-sm-0">
+        {{>dropdown currentPage=currentPage section="left"}}
+    </div>
+    <div class="col-sm-7 mb-3 mb-4">
+        {{>dropdown currentPage=currentPage section="right"}}
+    </div>
 </div>
+
 <br>
 <div class="row">
     <div class="col-sm-4 mb-3 mb-sm-0">
-        {{>chosenPlaylist}}
+        {{>chosenPlaylist currentPage=currentPage}}
     </div>
     <div class="col-sm-7 mb-3 mb-4">
 
@@ -25,20 +32,46 @@
                 </li>
 
                 <!-- Example Playlist Songs -->
+                <form action="/makePlaylist" method="POST">
                 <ul class="list-group list-group-flush">
+                    <input type="hidden" name="currentPage"
+                    value="{{currentPage}}">
                     {{#each playlist_songs}}
-                    <li class="list-group-item d-flex justify-content-between">
-                        <button class="song-selector"
-                            style="background-color: transparent"
-                            onclick="colorChange(event)"></button>
+                    <li id="song-list-group"
+                        class="list-group-item d-flex justify-content-between">
+                        <input id={{this.song_id}} type="checkbox" name="tracks" value={{this.song_id}}>
                         <span>{{this.name}}</span>
                         <span>{{this.artist}}</span>
                         <span>{{this.album_release}}</span>
                     </li>
                     {{/each}}
                 </ul>
+                <button type="submit" class="btn">Delete</button>
+            </form>
             </ul>
+            {{!-- SECTION FROM DRAFTPLAYLIST --}}
+             {{#if draftPlaylist}}
+            <script>console.log("TESTER")</script>
+            {{#each draftPlaylist}}
+
+            <li id="song-list-group"
+                class="list-group-item d-flex justify-content-between">
+                <span>{{this.name}}</span>
+                <span>{{this.artist}}</span>
+                <span>{{this.album_release}}</span>
+            </li>
+            {{/each}}
+            {{/if}}
         </div>
+            {{!-- END OF SECTION --}}
+        </div>
+        <form action="/makePlaylist" method="POST">
+            <input type="hidden" name="currentPage"
+                    value="{{currentPage}}">
+            <input type="hidden" name="toBeCleared"
+                    value="yes">
+            <button type="submit" class="btn">Clear New Songs</button>
+        </form>
     </div>
 </div>
 

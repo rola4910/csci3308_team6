@@ -30,8 +30,7 @@ const generateRandomString = (length) => {
 const clientId = "c25f72fe66174e8ab75756ddc591301f";
 const redirectUri = "http://localhost:3000/callback"; // local redirect
 // const redirectUri = "https://csci3308-team6.onrender.com/callback";
-const scope =
-  "user-read-private user-read-email playlist-read-private playlist-modify-public playlist-modify-private";
+const scope = "user-read-private user-read-email playlist-read-private playlist-modify-public playlist-modify-private";
 const clientSecret = "07e098d9c6d7421494042196d2b322fd";
 
 // *****************************************************
@@ -276,62 +275,135 @@ app.get("/makePlaylist", (req, res) => {
     });
 });
 
+app.post('/makePlaylist', (req, res) => {
+	const playlist_query = 'SELECT * FROM playlists;';
+	const currentPage = req.body.currentPage;
+  const selectedPlaylistName = req.body.selectedPlaylistName;
+	const selectedPlaylistId = req.body.id; // Retrieve playlist_id from query params
+	const newPlaylistName = req.body.newName || req.session.newPlaylistName;
+  const section = req.body.section;
+  const toBeCleared = req.body.toBeCleared;
+	const selectedSongs = Array.isArray(req.body.tracks)
+		? req.body.tracks
+		: req.body.tracks
+			? [req.body.tracks] // Wrap single value in an array
+			: [];
 
-app.post("/makePlaylist", (req, res) => {
-  const playlist_query = `SELECT * FROM playlists WHERE playlists.owner = '${req.session.uid}';`;
-  const currentPage = req.path;
-  const selectedPlaylistId = req.body.id; // Retrieve playlist_id from query params
-  const newPlaylistName = req.body.newName;
-  const selectedSongs = req.body.tracks;
 
-  // If a playlist is selected, get its songs
-  const getSongsPromise = selectedPlaylistId
-    ? getSongs(selectedPlaylistId)
-    : Promise.resolve([]); // No playlist selected, return an empty array
-  // // FIXME: If a new playlist name has been submitted call createNewPlaylist
-  // const createPlaylistPromise = newPlaylistName
-  //     ? createNewPlaylist(newPlaylistName)
-  // 	: Promise.resolve(); // no new name entered return an empty object?
-  // // 	//FIXME: add an error message to the resolve if the query fails
+	if (!req.session.draftPlaylist) {
+		req.session.draftPlaylist = [];
+	}
+  if (req.body.newName) {
+    req.session.newPlaylistName = req.body.newName;
+  }
 
-  // //add songs promise
-  // const addSongsPromise = selectedSongs
-  // 	? addSongs(selectedSongs)
-  // 	: Promise.resolve(); // if query fails return an err message
+  console.log("new name: ", newPlaylistName);
 
-  // Fetch playlists and songs in parallel
-  Promise.all([
-    getSongsPromise,
-    // createPlaylistPromise,
-    //addSongsPromise,
-    db.any(playlist_query),
-  ])
-    .then(([playlist_songs, playlists]) => {
-      res.render("pages/makePlaylist", {
-        // currentPage: currentPage,
-        // selectedPlaylistId: selectedPlaylistId || null,
+	// If a playlist is selected, get its songs
+	const getSongsPromise = selectedPlaylistId
+		? getSongs(selectedPlaylistId)
+		: Promise.resolve([]); // No playlist selected, return an empty array
+
+	var chosenSongsPromise = selectedSongs.length
+		? chosenSongs(selectedSongs)
+		: Promise.resolve([]);
+
+  
+    const clearDraftPlaylistPromise = toBeCleared
+    ? clearDraftPlaylist(req)
+    : Promise.resolve([]);
+  
+
+	Promise.all([
+		getSongsPromise,
+		db.any(playlist_query),
+		chosenSongs(selectedSongs),
+    clearDraftPlaylistPromise
+
+	])
+		.then(([playlist_songs, playlists, chosenSongs]) => {
+      console.log('.then: ', newPlaylistName)
+
+
+			if (chosenSongs && Array.isArray(chosenSongs)) {
+				chosenSongs.forEach((song) => {
+					if (!req.session.draftPlaylist.some((s) => s.song_id === song.song_id)) {
+						req.session.draftPlaylist.push(song);
+					}
+				});
+			}
+
+			// req.session.draftPlaylist = draftPlaylist;
+			req.session.save((err) => {
+				if (err) {
+					console.error('Error saving session:', err);
+				}
+			});
+      // console.log('current page: ', currentPage);
+      // if (
+      //   currentPage === "/makePlaylist" ||
+      //   currentPage === "/playlistEditor" ||
+      //   currentPage === "/delete"
+      // ) {
+      //   console.log(`pages${currentPage}`);
+  
+      //   res.render(`pages${currentPage}`, {
+      //     currentPage: currentPage,
+      //     // selectedPlaylistId: selectedPlaylistId || null,
+      //     playlists: playlists,
+      //     playlist_songs: playlist_songs || [],
+      //     draftPlaylist: req.session.draftPlaylist || [],
+      //     newPlaylistName: newPlaylistName === "/makePlaylist" ? newPlaylistName : undefined
+      //   });
+      // }
+      const renderData = {
+        currentPage: currentPage,
         playlists: playlists,
         playlist_songs: playlist_songs || [],
+        draftPlaylist: req.session.draftPlaylist || [],
+        newPlaylistName: newPlaylistName,
+        selectedPlaylistName: selectedPlaylistName
+        
+      };
 
-        // selectedSongs: selectedSongs || []
-      });
-    })
-    .catch((err) => {
-      console.error(err);
-      res.status(500).send("Error retrieving playlists and songs");
-    });
+      // Render the playlist_songs only for the relevant section
+      if (req.body.section === 'left') {
+        renderData.playlist_songs = playlist_songs || [];
+      } else if (req.body.section === 'right') {
+        renderData.playlist_songs = []; // Clear the playlist_songs for the other section
+      }
+       console.log(renderData);
+
+      res.render(`pages${currentPage}`, renderData);
+
+      
+
+			// res.render('pages/makePlaylist', {
+			// 	 currentPage: currentPage,
+			// 	// selectedPlaylistId: selectedPlaylistId || null,
+			// 	playlists: playlists,
+			// 	playlist_songs: playlist_songs || [],
+			// 	draftPlaylist: req.session.draftPlaylist || [],
+			// 	newPlaylistName: newPlaylistName
+			// });
+		})
+		.catch(err => {
+			console.error(err);
+			res.status(500).send('Error retrieving playlists and songs');
+		});
 });
 
 
 app.get("/playlistEditor", (req, res) => {
   const playlist_query = `SELECT * FROM playlists WHERE playlists.owner = '${req.session.uid}';`;
   const currentPage = req.path;
-  // console.log(currentPage);
+  console.log(currentPage);
 
   db.any(playlist_query)
     .then((data) => {
       const playlists = data;
       // Render the makePlaylist page with the playlists and playlist songs
+      console.log(currentPage);
       res.render("pages/playlistEditor", {
         playlists: playlists,
         currentPage: currentPage,
@@ -948,8 +1020,50 @@ function getSongs(playlistId) {
     });
 }
 
+function chosenSongs(selectedSongs) {
 
+	const selectedSongsQuery = `SELECT name, artist, album_release, song_id FROM playlist_songs WHERE song_id = ANY($1::varchar[]);`;
+
+	if (selectedSongs.length === 0) {
+		return Promise.resolve([]);
+	}
+	return db.any(selectedSongsQuery, [selectedSongs])
+		.then(data => {
+      console.log("Chosen Songs Query Result:", data);
+			return data;
+		})
+		.catch(err => {
+			console.error('Error in chosenSongs:', err); // Log errors
+			throw err;
+		});
+}
+
+function clearDraftPlaylist(req) {
+  req.session.draftPlaylist = [];
+  return Promise.resolve([]);
+}
+
+<<<<<<< HEAD
 async function deleteSongs(snapshot_id, uris, playlist_id, access_token) {
+=======
+function deletePlaylist(playlistID) {
+	const deleteSongsQuery = 'DELETE FROM playlist_songs WHERE playlist_id = $1;';
+	const changePlaylistTitle = 'UPDATE playlists SET name = $1 WHERE playlist_id = $2;';
+	const deletedName = 'deleted';
+  
+	db.batch([
+	  db.none(deleteSongsQuery, [playlistID]),
+	  db.none(changePlaylistTitle, [deletedName, playlistID])
+	])
+	  .then(() => {
+		console.log('Songs deleted and playlist name updated successfully.');
+	  })
+	  .catch((err) => {
+		console.error('Error processing deletePlaylist:', err);
+	  });
+  }
+  
+>>>>>>> front-end
 
   try {
     const response = await axios.delete(
