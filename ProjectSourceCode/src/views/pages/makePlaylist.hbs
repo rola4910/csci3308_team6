@@ -1,15 +1,21 @@
+<script src="../../index.js"></script>
 <br>
-<div class = "row justify-content-between">
+{{!--
+<script src="index.js"></script> --}}
+<div class="row justify-content-between">
     <div class="col-4">
         {{>dropdown currentPage=currentPage newPlaylistName=newPlaylistName}}
     </div>
     <div class="col-4">
-        <form>
-            <button type="submit">Export to Spotify</button>
+        <form action="/makePlaylist" method="POST" >
+            <input type="hidden" name="currentPage"
+                    value="{{currentPage}}">
+            <input type="hidden" name="export" value="true">
+            <button id="export_btn" type="submit">Export to Spotify</button>
         </form>
     </div>
 </div>
-    
+
 </div>
 <br>
 <div class="row">
@@ -20,3 +26,9 @@
         {{>draftPlaylist currentPage=currentPage}}
     </div>
 </div>
+{{!-- <script>
+    document.getElementById("export_btn").addEventListener('click', function (event) {
+        event.preventDefault(); // Prevent form submission
+        createPlaylist(); // Call your function
+    });
+</script> --}}
