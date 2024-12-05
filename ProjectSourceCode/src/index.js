@@ -1043,27 +1043,7 @@ function clearDraftPlaylist(req) {
   return Promise.resolve([]);
 }
 
-<<<<<<< HEAD
 async function deleteSongs(snapshot_id, uris, playlist_id, access_token) {
-=======
-function deletePlaylist(playlistID) {
-	const deleteSongsQuery = 'DELETE FROM playlist_songs WHERE playlist_id = $1;';
-	const changePlaylistTitle = 'UPDATE playlists SET name = $1 WHERE playlist_id = $2;';
-	const deletedName = 'deleted';
-  
-	db.batch([
-	  db.none(deleteSongsQuery, [playlistID]),
-	  db.none(changePlaylistTitle, [deletedName, playlistID])
-	])
-	  .then(() => {
-		console.log('Songs deleted and playlist name updated successfully.');
-	  })
-	  .catch((err) => {
-		console.error('Error processing deletePlaylist:', err);
-	  });
-  }
-  
->>>>>>> front-end
 
   try {
     const response = await axios.delete(
