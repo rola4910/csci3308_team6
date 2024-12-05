@@ -5,6 +5,8 @@ CREATE TABLE playlists (
     owner VARCHAR(32) NOT NULL, -- spotify user_id
     playlist_id VARCHAR(32) PRIMARY KEY NOT NULL, -- used for API calls
     snapshot_id VARCHAR(100) NOT NULL,
+    description VARCHAR(256),
+    url VARCHAR(100),
     public BOOLEAN NOT NULL
 );
 

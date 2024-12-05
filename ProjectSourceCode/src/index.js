@@ -299,10 +299,10 @@ app.post('/makePlaylist', (req, res) => {
   }
   if (req.body.id) {
     req.session.selectedPlaylistId = selectedPlaylistId;
-    console.log('sekected playlist ID saved to session', req.session.selectedPlaylistId)
+    // console.log('selected playlist ID saved to session', req.session.selectedPlaylistId)
   }
 
-  console.log("new name: ", newPlaylistName);
+  // console.log("new name: ", newPlaylistName);
 
 	// If a playlist is selected, get its songs
 	const getSongsPromise = selectedPlaylistId
@@ -327,7 +327,7 @@ app.post('/makePlaylist', (req, res) => {
 
 	])
 		.then(([playlist_songs, playlists, chosenSongs]) => {
-      console.log('.then: ', newPlaylistName)
+      // console.log('.then: ', newPlaylistName)
 
 
 			if (chosenSongs && Array.isArray(chosenSongs)) {
@@ -375,14 +375,13 @@ app.post('/makePlaylist', (req, res) => {
       // Render the playlist_songs only for the relevant section
       if (req.body.section === 'left') {
         renderData.playlist_songs = playlist_songs || [];
-      } else if (req.body.section === 'right') {
+      } 
+      else if (req.body.section === 'right') {
         renderData.playlist_songs = []; // Clear the playlist_songs for the other section
       }
-       console.log(renderData);
+      // console.log(renderData);
 
       res.render(`pages${currentPage}`, renderData);
-
-      
 
 			// res.render('pages/makePlaylist', {
 			// 	 currentPage: currentPage,
@@ -426,7 +425,7 @@ app.get("/delete", (req, res) => {
   const playlist_query = `SELECT * FROM playlists WHERE playlists.owner = '${req.session.uid}';`;
   const currentPage = req.path;
   const playlist_id = req.body.id;
-  console.log('TEST playlist ID: ', playlist_id);
+  // console.log('TEST playlist ID: ', playlist_id);
   // console.log(currentPage);
 
   db.any(playlist_query)
@@ -449,12 +448,10 @@ app.get("/delete", (req, res) => {
 app.post("/deletePlaylist", async (req, res) => {
   const access_token = req.session.access_token;
   const playlist_id = req.session.selectedPlaylistId;
-  console.log('req.body.selectedPlaylistId inside deletePlaylist', req.session.selectedPlaylistId)
-  console.log('playlist_id inside deletePlaylist', playlist_id)
+  // console.log('req.body.selectedPlaylistId inside deletePlaylist', req.session.selectedPlaylistId)
+  // console.log('playlist_id inside deletePlaylist', playlist_id)
 
-  // console.log("recieved id:", playlist_id);
-
-  const snapshot_id_query = `SELECT snapshot_id FROM playlists WHERE playlist_id = '${playlist_id}';`;
+  const snapshot_id_query = `SELECT (snapshot_id, description, public) FROM playlists WHERE playlist_id = '${playlist_id}';`;
   const song_uris_query = `SELECT uri FROM playlist_songs WHERE playlist_id = '${playlist_id}';`;
 
   db.task("get-everything", (task) => {
@@ -464,10 +461,15 @@ app.post("/deletePlaylist", async (req, res) => {
     ]);
   })
   .then((data) => {
-    const snapshot_id = data[0];
+    const query_arr = data[0].row.split(',');
+    const snapshot_id = (query_arr[0]).substring(1);
+    const description = query_arr[1] == 'null' ? null : query_arr[1];
+    const public = query_arr[2] == 't' ? true : false;
     const uris = data[1];
+    // console.log(snapshot_id, description, public);
 
     deleteSongs(snapshot_id, uris, playlist_id, access_token);
+    changePlaylistName(playlist_id, description, public, access_token);
 
     res.render("pages/delete");
   })
@@ -525,7 +527,7 @@ app.post("/getSongs", (req, res) => {
 app.post("/makeNewPlaylist", (req, res) => {
   const newPlaylistName = req.body.newName;
   res.render("pages/makePlaylist", { newPlaylistName: newPlaylistName });
-  console.log(newPlaylistName);
+  // console.log(newPlaylistName);
   // TODO: INSERT NEW PLAYLIST TRACKS INTO db
 });
 
@@ -700,8 +702,15 @@ async function addPlaylistsToDB(num_playlists, response, accessToken, uid) {
         const public = curr_playlist.public;
         const snapshot_id = curr_playlist.snapshot_id;
 
+        var description = curr_playlist.description || null;
+        if (description != null && description.includes("'")) {
+          name = name.replace(/'/g, "''");
+        }
+
+        const url = curr_playlist.external_urls.spotify;
+
         // now build query
-        const query = `INSERT INTO playlists (name, owner, playlist_id, snapshot_id, public) VALUES ('${name}', '${uid}', '${playlist_id}', '${snapshot_id}', ${public}) RETURNING *;`;
+        const query = `INSERT INTO playlists (name, owner, playlist_id, snapshot_id, description, url, public) VALUES ('${name}', '${uid}', '${playlist_id}', '${snapshot_id}', '${description}', '${url}', ${public}) RETURNING *;`;
         db.one(query)
           .then((data) => {
             // playlist has been inserted. now to add songs from this specific playlist
@@ -751,19 +760,26 @@ async function addPlaylistsToDB(num_playlists, response, accessToken, uid) {
             const playlist_id = curr_playlist.id;
             const public = curr_playlist.public;
             const snapshot_id = curr_playlist.snapshot_id;
+            
+            var description = curr_playlist.description || null;
+            if (description != null && description.includes("'")) {
+              name = name.replace(/'/g, "''");
+            }
+    
+            const url = curr_playlist.external_urls.spotify;
 
             // now build query
-            const query = `INSERT INTO playlists (name, owner, playlist_id, snapshot_id, public) VALUES ('${name}', '${uid}', '${playlist_id}', '${snapshot_id}', ${public}) RETURNING *;`;
+            const query = `INSERT INTO playlists (name, owner, playlist_id, snapshot_id, description, url, public) VALUES ('${name}', '${uid}', '${playlist_id}', '${snapshot_id}', '${description}', '${url}', ${public}) RETURNING *;`;
             db.one(query)
-              .then((data) => {
-                // playlist has been inserted. now to add songs from this specific playlist
-                addSongsFromPlaylist(playlist_id, accessToken);
-                return;
-              })
-              .catch((err) => {
-                console.log(err.message);
-                return;
-              });
+            .then((data) => {
+              // playlist has been inserted. now to add songs from this specific playlist
+              addSongsFromPlaylist(playlist_id, accessToken);
+              return;
+            })
+            .catch((err) => {
+              console.log(err.message);
+              return;
+            });
           }
         }
       } else {
@@ -810,18 +826,25 @@ async function addPlaylistsToDB(num_playlists, response, accessToken, uid) {
             const public = curr_playlist.public;
             const snapshot_id = curr_playlist.snapshot_id;
 
+            var description = curr_playlist.description || null;
+            if (description != null && description.includes("'")) {
+              name = name.replace(/'/g, "''");
+            }
+
+            const url = curr_playlist.external_urls.spotify;
+
             // now build query
-            const query = `INSERT INTO playlists (name, owner, playlist_id, snapshot_id, public) VALUES ('${name}', '${uid}', '${playlist_id}', '${snapshot_id}', ${public}) RETURNING *;`;
+            const query = `INSERT INTO playlists (name, owner, playlist_id, snapshot_id, description, url, public) VALUES ('${name}', '${uid}', '${playlist_id}', '${snapshot_id}', '${description}', '${url}', ${public}) RETURNING *;`;
             db.one(query)
-              .then((data) => {
-                // playlist has been inserted. now to add songs from this specific playlist
-                addSongsFromPlaylist(playlist_id, accessToken);
-                return;
-              })
-              .catch((err) => {
-                console.log(err.message);
-                return;
-              });
+            .then((data) => {
+              // playlist has been inserted. now to add songs from this specific playlist
+              addSongsFromPlaylist(playlist_id, accessToken);
+              return;
+            })
+            .catch((err) => {
+              console.log(err.message);
+              return;
+            });
           }
         }
       }
@@ -1029,7 +1052,6 @@ function getSongs(playlistId) {
 }
 
 function chosenSongs(selectedSongs) {
-
 	const selectedSongsQuery = `SELECT name, artist, album_release, song_id FROM playlist_songs WHERE song_id = ANY($1::varchar[]);`;
 
 	if (selectedSongs.length === 0) {
@@ -1052,7 +1074,7 @@ function clearDraftPlaylist(req) {
 }
 
 async function deleteSongs(snapshot_id, uris, playlist_id, access_token) {
-
+  // function to delete songs from playlist
   try {
     const response = await axios.delete(
       `https://api.spotify.com/v1/playlists/${playlist_id}/tracks`,  // Spotify API endpoint
@@ -1074,6 +1096,28 @@ async function deleteSongs(snapshot_id, uris, playlist_id, access_token) {
     console.error('Error removing tracks:', error);
   }
 }
+
+
+async function changePlaylistName(playlist_id, description, public, access_token) {  
+  const data = {
+    name: "Deleted Playlist",
+    description: description || null,
+    public: public
+  };
+  
+  try {
+    const response = await axios.put(`https://api.spotify.com/v1/playlists/${playlist_id}`, data, {
+        headers: {
+            'Authorization': `Bearer ${access_token}`,
+        }
+    });
+    console.log("Success, ", response.data);  // Return the response data if successful
+  } 
+  catch (error) {
+      console.error('Error updating playlist details:', error.response ? error.response.data : error.message);
+  }
+}
+
 
 // *****************************************************
 // <!-- Section 6 : Start Server-->
