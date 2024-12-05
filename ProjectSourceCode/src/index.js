@@ -1015,7 +1015,16 @@ async function deleteSongs(snapshot_id, uris, playlist_id, access_token) {
       }
     );
 
-    console.log('Tracks removed:', response.data);
+    console.log('Tracks removed:');
+
+    const deleteQuery = `DELETE FROM playlist_songs WHERE playlist_id = '${playlist_id}';`;
+    db.none(deleteQuery)
+    .then(() =>{
+      console.log("removed songs from DB");
+    })
+    .catch((err) => {
+      console.log(err.message);
+    });
   } 
   catch (error) {
     console.error('Error removing tracks:', error);
@@ -1036,7 +1045,16 @@ async function changePlaylistName(playlist_id, description, public, access_token
             'Authorization': `Bearer ${access_token}`,
         }
     });
-    console.log("Success, ", response.data);  // Return the response data if successful
+    console.log("Successfully renamed");  // Return the response data if successful
+
+    const renameQuery =  `DELETE FROM playlists WHERE playlist_id = '${playlist_id}';`;
+    db.none(renameQuery)
+    .then(() => {
+      console.log("removed playlist from DB");
+    })
+    .catch((err) => {
+      console.log(err.message);
+    });
   } 
   catch (error) {
       console.error('Error updating playlist details:', error.response ? error.response.data : error.message);
