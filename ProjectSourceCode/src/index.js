@@ -30,7 +30,8 @@ const generateRandomString = (length) => {
 const clientId = "c25f72fe66174e8ab75756ddc591301f";
 const redirectUri = "http://localhost:3000/callback"; // local redirect
 // const redirectUri = "https://csci3308-team6.onrender.com/callback";
-const scope = "user-read-private user-read-email playlist-read-private playlist-modify-public playlist-modify-private";
+const scope =
+  "user-read-private user-read-email playlist-read-private playlist-modify-public playlist-modify-private";
 const clientSecret = "07e098d9c6d7421494042196d2b322fd";
 
 // *****************************************************
@@ -106,11 +107,9 @@ app.get("/", async function (req, res) {
   }
 });
 
-
 app.get("/login", function (req, res) {
   res.render("pages/login", { bodyId: "login-page" });
 });
-
 
 // login
 app.post("/login", async (req, res) => {
@@ -138,11 +137,9 @@ app.post("/login", async (req, res) => {
     });
 });
 
-
 app.get("/register", (req, res) => {
   res.render("pages/register");
 });
-
 
 // Register
 app.post("/register", async (req, res) => {
@@ -162,12 +159,10 @@ app.post("/register", async (req, res) => {
     });
 });
 
-
 app.get("/logout", (req, res) => {
   req.session.destroy();
   res.redirect("/login");
 });
-
 
 // login route for Spotify authorization
 app.get("/login2", function (req, res) {
@@ -184,7 +179,6 @@ app.get("/login2", function (req, res) {
       })
   );
 });
-
 
 // callback function for auth
 app.get("/callback", async function (req, res) {
@@ -234,7 +228,6 @@ app.get("/callback", async function (req, res) {
   monitorTokens(req);
 });
 
-
 // Authentication Middleware.
 const auth = (req, res, next) => {
   if (!req.session.access_token) {
@@ -247,11 +240,9 @@ const auth = (req, res, next) => {
 // Authentication Required
 app.use(auth);
 
-
 app.get("/home", (req, res) => {
-  res.render("pages/home",  { bodyId: "home-page" });
+  res.render("pages/home", { bodyId: "home-page" });
 });
-
 
 app.get("/makePlaylist", (req, res) => {
   const playlist_query = `SELECT * FROM playlists WHERE playlists.owner = '${req.session.uid}';`;
@@ -260,7 +251,6 @@ app.get("/makePlaylist", (req, res) => {
 
   db.any(playlist_query)
     .then((data) => {
-    
       // console.log("makePlaylist:", data[1].name)
       const playlists = data;
       // console.log("makePlaylists query result:", playlists);
@@ -268,7 +258,7 @@ app.get("/makePlaylist", (req, res) => {
       res.render("pages/makePlaylist", {
         playlists: playlists,
         currentPage: currentPage,
-        bodyId: "make-playlist-page" 
+        bodyId: "make-playlist-page",
       });
     })
     .catch((err) => {
@@ -277,25 +267,23 @@ app.get("/makePlaylist", (req, res) => {
     });
 });
 
-
-app.post('/makePlaylist', (req, res) => {
-	const playlist_query = 'SELECT * FROM playlists;';
-	const currentPage = req.body.currentPage;
+app.post("/makePlaylist", (req, res) => {
+  const playlist_query = "SELECT * FROM playlists;";
+  const currentPage = req.body.currentPage;
   const selectedPlaylistName = req.body.selectedPlaylistName;
-	const selectedPlaylistId = req.body.id; // Retrieve playlist_id from query params
-	const newPlaylistName = req.body.newName || req.session.newPlaylistName;
+  const selectedPlaylistId = req.body.id; // Retrieve playlist_id from query params
+  const newPlaylistName = req.body.newName || req.session.newPlaylistName;
   const section = req.body.section;
   const toBeCleared = req.body.toBeCleared;
-	const selectedSongs = Array.isArray(req.body.tracks)
-		? req.body.tracks
-		: req.body.tracks
-	  ? [req.body.tracks] // Wrap single value in an array
-		: [];
+  const selectedSongs = Array.isArray(req.body.tracks)
+    ? req.body.tracks
+    : req.body.tracks
+    ? [req.body.tracks] // Wrap single value in an array
+    : [];
 
-
-	if (!req.session.draftPlaylist) {
-		req.session.draftPlaylist = [];
-	}
+  if (!req.session.draftPlaylist) {
+    req.session.draftPlaylist = [];
+  }
   if (req.body.newName) {
     req.session.newPlaylistName = req.body.newName;
   }
@@ -306,53 +294,50 @@ app.post('/makePlaylist', (req, res) => {
 
   // console.log("new name: ", newPlaylistName);
 
-	// If a playlist is selected, get its songs
-	const getSongsPromise = selectedPlaylistId
-		? getSongs(selectedPlaylistId)
-		: Promise.resolve([]); // No playlist selected, return an empty array
+  // If a playlist is selected, get its songs
+  const getSongsPromise = selectedPlaylistId
+    ? getSongs(selectedPlaylistId)
+    : Promise.resolve([]); // No playlist selected, return an empty array
 
-	var chosenSongsPromise = selectedSongs.length
-		? chosenSongs(selectedSongs)
-		: Promise.resolve([]);
+  var chosenSongsPromise = selectedSongs.length
+    ? chosenSongs(selectedSongs)
+    : Promise.resolve([]);
 
-  
   const clearDraftPlaylistPromise = toBeCleared
     ? clearDraftPlaylist(req)
     : Promise.resolve([]);
-  
 
-	Promise.all([
-		getSongsPromise,
-		db.any(playlist_query),
-		chosenSongs(selectedSongs),
-    clearDraftPlaylistPromise
-
-	])
-		.then(([playlist_songs, playlists, chosenSongs]) => {
+  Promise.all([
+    getSongsPromise,
+    db.any(playlist_query),
+    chosenSongs(selectedSongs),
+    clearDraftPlaylistPromise,
+  ])
+    .then(([playlist_songs, playlists, chosenSongs]) => {
       // console.log('.then: ', newPlaylistName)
 
-			if (chosenSongs && Array.isArray(chosenSongs)) {
-				chosenSongs.forEach((song) => {
-					if (!req.session.draftPlaylist.some((s) => s.song_id === song.song_id)) {
-						req.session.draftPlaylist.push(song);
-					}
-				});
-			}
+      if (chosenSongs && Array.isArray(chosenSongs)) {
+        chosenSongs.forEach((song) => {
+          if (
+            !req.session.draftPlaylist.some((s) => s.song_id === song.song_id)
+          ) {
+            req.session.draftPlaylist.push(song);
+          }
+        });
+      }
 
-			// req.session.draftPlaylist = draftPlaylist;
-			req.session.save((err) => {
-				if (err) {
-					console.error('Error saving session:', err);
-				}
-			});
+      // req.session.draftPlaylist = draftPlaylist;
+      req.session.save((err) => {
+        if (err) {
+          console.error("Error saving session:", err);
+        }
+      });
 
-      if(currentPage === '/makePlaylist')
-        bodyId = 'make-playlist-page';
-      else if(currentPage === '/playlistEditor')
-        bodyId = 'edit-playlist-page';
-      else if(currentPage === '/deletePlaylist')
-        bodyId = 'delete-playlist-page';
- 
+      if (currentPage === "/makePlaylist") bodyId = "make-playlist-page";
+      else if (currentPage === "/playlistEditor") bodyId = "edit-playlist-page";
+      else if (currentPage === "/deletePlaylist")
+        bodyId = "delete-playlist-page";
+
       const renderData = {
         currentPage: currentPage,
         playlists: playlists,
@@ -360,27 +345,24 @@ app.post('/makePlaylist', (req, res) => {
         draftPlaylist: req.session.draftPlaylist || [],
         newPlaylistName: newPlaylistName,
         selectedPlaylistName: selectedPlaylistName,
-        bodyId: bodyId
-        
+        bodyId: bodyId,
       };
 
       // Render the playlist_songs only for the relevant section
-      if (req.body.section === 'left') {
+      if (req.body.section === "left") {
         renderData.playlist_songs = playlist_songs || [];
-      } else if (req.body.section === 'right') {
+      } else if (req.body.section === "right") {
         renderData.playlist_songs = []; // Clear the playlist_songs for the other section
       }
       // console.log(renderData);
 
       res.render(`pages${currentPage}`, renderData);
-
-		})
-		.catch(err => {
-			console.error(err);
-			res.status(500).send('Error retrieving playlists and songs');
-		});
+    })
+    .catch((err) => {
+      console.error(err);
+      res.status(500).send("Error retrieving playlists and songs");
+    });
 });
-
 
 app.get("/playlistEditor", (req, res) => {
   const playlist_query = `SELECT * FROM playlists WHERE playlists.owner = '${req.session.uid}';`;
@@ -395,7 +377,7 @@ app.get("/playlistEditor", (req, res) => {
       res.render("pages/playlistEditor", {
         playlists: playlists,
         currentPage: currentPage,
-        bodyId: "edit-playlist-page"
+        bodyId: "edit-playlist-page",
       });
     })
     .catch((err) => {
@@ -403,7 +385,6 @@ app.get("/playlistEditor", (req, res) => {
       res.status(500).send("Error retrieving playlists");
     });
 });
-
 
 app.get("/delete", (req, res) => {
   const playlist_query = `SELECT * FROM playlists WHERE playlists.owner = '${req.session.uid}';`;
@@ -420,7 +401,7 @@ app.get("/delete", (req, res) => {
       res.render("pages/delete", {
         playlists: playlists,
         currentPage: currentPage,
-        bodyId: "delete-playlist-page"
+        bodyId: "delete-playlist-page",
       });
     })
     .catch((err) => {
@@ -428,7 +409,6 @@ app.get("/delete", (req, res) => {
       res.status(500).send("Error retrieving playlists");
     });
 });
-
 
 app.post("/deletePlaylist", async (req, res) => {
   const access_token = req.session.access_token;
@@ -445,26 +425,26 @@ app.post("/deletePlaylist", async (req, res) => {
       task.many(song_uris_query),
     ]);
   })
-  .then((data) => {
-    const query_arr = data[0].row.split(',');
-    const snapshot_id = (query_arr[0]).substring(1);
-    const description = query_arr[1] == 'null' ? null : query_arr[1];
-    const public = query_arr[2] == 't' ? true : false;
-    const uris = data[1];
-    // console.log(snapshot_id, description, public);
+    .then((data) => {
+      const query_arr = data[0].row.split(",");
+      const snapshot_id = query_arr[0].substring(1);
+      const description = query_arr[1] == "null" ? null : query_arr[1];
+      const public = query_arr[2] == "t" ? true : false;
+      const uris = data[1];
+      // console.log(snapshot_id, description, public);
 
-    deleteSongs(snapshot_id, uris, playlist_id, access_token);
-    changePlaylistName(playlist_id, description, public, access_token);
+      deleteSongs(snapshot_id, uris, playlist_id, access_token);
+      changePlaylistName(playlist_id, description, public, access_token);
 
-    res.render("pages/delete");
-  })
-  .catch((err) => {
-    console.error(err);
-    res.status(500).send("Error retrieving playlist snapshot id and song uris");
-  })
-
-})
-
+      res.render("pages/delete");
+    })
+    .catch((err) => {
+      console.error(err);
+      res
+        .status(500)
+        .send("Error retrieving playlist snapshot id and song uris");
+    });
+});
 
 app.get("/getUserPlaylists", async (req, res) => {
   // Assume accessToken is obtained during the authorization flow and stored in session variable
@@ -472,8 +452,7 @@ app.get("/getUserPlaylists", async (req, res) => {
 
   if (req.session.access_token != null) {
     req.session.uid = await get_id(req.session.access_token);
-  } 
-  else {
+  } else {
     res.send("Error with user_id");
     return;
   }
@@ -509,7 +488,6 @@ app.get("/getUserPlaylists", async (req, res) => {
     res.send(error.message);
   }
 });
-
 
 // *****************************************************
 // <!-- Section 5 : Helper Functions
@@ -551,7 +529,6 @@ const getRefreshToken = async (req) => {
   }
 };
 
-
 // function to monitor tokens and refresh if about to expire
 const monitorTokens = (req) => {
   // Check every minute if the access token is about to expire
@@ -579,7 +556,6 @@ const monitorTokens = (req) => {
   }, 60 * 1000); // Check every 60 seconds
 };
 
-
 // function to get user_id and populate, called in callback
 async function get_id(access_token) {
   const options = {
@@ -598,14 +574,13 @@ async function get_id(access_token) {
   }
 }
 
-
 async function addPlaylistsToDB(num_playlists, response, accessToken, uid) {
   // console.log("ALL PLAYLISTS:", response.items);
   if (num_playlists <= 50) {
     // console.log('num_playlists < 50');
     for (var i = 0; i < num_playlists; i++) {
       const curr_playlist = response.items[i];
-    // console.log("CURRENT PLAYLIST:\n", curr_playlist, "\n\n");
+      // console.log("CURRENT PLAYLIST:\n", curr_playlist, "\n\n");
       if (curr_playlist == null || curr_playlist == undefined) {
         continue;
       }
@@ -665,8 +640,8 @@ async function addPlaylistsToDB(num_playlists, response, accessToken, uid) {
         for (var j = 0; j < 50; j++) {
           const curr_playlist = response.items[j];
           if (curr_playlist == null || curr_playlist == undefined) {
-			continue;
-		  }
+            continue;
+          }
 
           if (curr_playlist.tracks.total == 0) {
             // skip if no songs
@@ -685,26 +660,26 @@ async function addPlaylistsToDB(num_playlists, response, accessToken, uid) {
             const playlist_id = curr_playlist.id;
             const public = curr_playlist.public;
             const snapshot_id = curr_playlist.snapshot_id;
-            
+
             var description = curr_playlist.description || null;
             if (description != null && description.includes("'")) {
               name = name.replace(/'/g, "''");
             }
-    
+
             const url = curr_playlist.external_urls.spotify;
 
             // now build query
             const query = `INSERT INTO playlists (name, owner, playlist_id, snapshot_id, description, url, public) VALUES ('${name}', '${uid}', '${playlist_id}', '${snapshot_id}', '${description}', '${url}', ${public}) RETURNING *;`;
             db.one(query)
-            .then((data) => {
-              // playlist has been inserted. now to add songs from this specific playlist
-              addSongsFromPlaylist(playlist_id, accessToken);
-              return;
-            })
-            .catch((err) => {
-              console.log(err.message);
-              return;
-            });
+              .then((data) => {
+                // playlist has been inserted. now to add songs from this specific playlist
+                addSongsFromPlaylist(playlist_id, accessToken);
+                return;
+              })
+              .catch((err) => {
+                console.log(err.message);
+                return;
+              });
           }
         }
       } else {
@@ -727,11 +702,11 @@ async function addPlaylistsToDB(num_playlists, response, accessToken, uid) {
         // console.log("curr_num_playlists:", curr_num_playlists);
 
         for (var j = 0; j < curr_num_playlists; j++) {
-        //   console.log(curr_response.data.items);
+          //   console.log(curr_response.data.items);
           const curr_playlist = curr_response.data.items[j];
-		  if (curr_playlist == null || curr_playlist == undefined) {
-			continue;
-		  }
+          if (curr_playlist == null || curr_playlist == undefined) {
+            continue;
+          }
 
           if (curr_playlist.tracks.total == 0) {
             // skip if no songs
@@ -761,15 +736,15 @@ async function addPlaylistsToDB(num_playlists, response, accessToken, uid) {
             // now build query
             const query = `INSERT INTO playlists (name, owner, playlist_id, snapshot_id, description, url, public) VALUES ('${name}', '${uid}', '${playlist_id}', '${snapshot_id}', '${description}', '${url}', ${public}) RETURNING *;`;
             db.one(query)
-            .then((data) => {
-              // playlist has been inserted. now to add songs from this specific playlist
-              addSongsFromPlaylist(playlist_id, accessToken);
-              return;
-            })
-            .catch((err) => {
-              console.log(err.message);
-              return;
-            });
+              .then((data) => {
+                // playlist has been inserted. now to add songs from this specific playlist
+                addSongsFromPlaylist(playlist_id, accessToken);
+                return;
+              })
+              .catch((err) => {
+                console.log(err.message);
+                return;
+              });
           }
         }
       }
@@ -779,7 +754,6 @@ async function addPlaylistsToDB(num_playlists, response, accessToken, uid) {
     }
   }
 }
-
 
 async function addSongsFromPlaylist(playlistId, accessToken, uid) {
   const options = {
@@ -901,7 +875,7 @@ async function addSongsFromPlaylist(playlistId, accessToken, uid) {
           // any future iterations - must do a next call for any songs over 100
           // console.log('GOT TO ELSE after adding first 100 songs');
 
-        //   console.log("current_response:", curr_response.data);
+          //   console.log("current_response:", curr_response.data);
           curr_response = await axios.get(curr_response.data.next, options);
 
           var curr_num_songs = num_songs % 100;
@@ -962,7 +936,6 @@ async function addSongsFromPlaylist(playlistId, accessToken, uid) {
   }
 }
 
-
 function getSongs(playlistId) {
   const songs_query = `SELECT * FROM playlist_songs WHERE playlist_id = $1;`;
   return db
@@ -977,20 +950,21 @@ function getSongs(playlistId) {
 }
 
 function chosenSongs(selectedSongs) {
-	const selectedSongsQuery = `SELECT name, artist, album_release, song_id, uri FROM playlist_songs WHERE song_id = ANY($1::varchar[]);`;
+  const selectedSongsQuery = `SELECT name, artist, album_release, song_id, uri FROM playlist_songs WHERE song_id = ANY($1::varchar[]);`;
 
-	if (selectedSongs.length === 0) {
-		return Promise.resolve([]);
-	}
-	return db.any(selectedSongsQuery, [selectedSongs])
-		.then(data => {
+  if (selectedSongs.length === 0) {
+    return Promise.resolve([]);
+  }
+  return db
+    .any(selectedSongsQuery, [selectedSongs])
+    .then((data) => {
       console.log("Chosen Songs Query Result:", data);
-			return data;
-		})
-		.catch(err => {
-			console.error('Error in chosenSongs:', err); // Log errors
-			throw err;
-		});
+      return data;
+    })
+    .catch((err) => {
+      console.error("Error in chosenSongs:", err); // Log errors
+      throw err;
+    });
 }
 
 function clearDraftPlaylist(req) {
@@ -1002,70 +976,77 @@ async function deleteSongs(snapshot_id, uris, playlist_id, access_token) {
   // function to delete songs from playlist
   try {
     const response = await axios.delete(
-      `https://api.spotify.com/v1/playlists/${playlist_id}/tracks`,  // Spotify API endpoint
+      `https://api.spotify.com/v1/playlists/${playlist_id}/tracks`, // Spotify API endpoint
       {
         headers: {
-          'Authorization': `Bearer ${access_token}`,  // Authorization header with Bearer token
-          'Content-Type': 'application/json'    // Set content type to JSON
+          Authorization: `Bearer ${access_token}`, // Authorization header with Bearer token
+          "Content-Type": "application/json", // Set content type to JSON
         },
         data: {
-          snapshot_id: snapshot_id.snapshot_id,  // Include the snapshot ID to ensure consistency
-          tracks: uris         // Array of track objects to be removed
-        }
+          snapshot_id: snapshot_id.snapshot_id, // Include the snapshot ID to ensure consistency
+          tracks: uris, // Array of track objects to be removed
+        },
       }
     );
 
-    console.log('Tracks removed:');
+    console.log("Tracks removed:");
 
     const deleteQuery = `DELETE FROM playlist_songs WHERE playlist_id = '${playlist_id}';`;
     db.none(deleteQuery)
-    .then(() =>{
-      console.log("removed songs from DB");
-    })
-    .catch((err) => {
-      console.log(err.message);
-    });
-  } 
-  catch (error) {
-    console.error('Error removing tracks:', error);
+      .then(() => {
+        console.log("removed songs from DB");
+      })
+      .catch((err) => {
+        console.log(err.message);
+      });
+  } catch (error) {
+    console.error("Error removing tracks:", error);
   }
 }
 
-
-async function changePlaylistName(playlist_id, description, public, access_token) {  
+async function changePlaylistName(
+  playlist_id,
+  description,
+  public,
+  access_token
+) {
   const data = {
     name: "Deleted Playlist",
     description: description || null,
-    public: public
+    public: public,
   };
-  
-  try {
-    const response = await axios.put(`https://api.spotify.com/v1/playlists/${playlist_id}`, data, {
-        headers: {
-            'Authorization': `Bearer ${access_token}`,
-        }
-    });
-    console.log("Successfully renamed");  // Return the response data if successful
 
-    const renameQuery =  `DELETE FROM playlists WHERE playlist_id = '${playlist_id}';`;
+  try {
+    const response = await axios.put(
+      `https://api.spotify.com/v1/playlists/${playlist_id}`,
+      data,
+      {
+        headers: {
+          Authorization: `Bearer ${access_token}`,
+        },
+      }
+    );
+    console.log("Successfully renamed"); // Return the response data if successful
+
+    const renameQuery = `DELETE FROM playlists WHERE playlist_id = '${playlist_id}';`;
     db.none(renameQuery)
-    .then(() => {
-      console.log("removed playlist from DB");
-    })
-    .catch((err) => {
-      console.log(err.message);
-    });
-  } 
-  catch (error) {
-      console.error('Error updating playlist details:', error.response ? error.response.data : error.message);
+      .then(() => {
+        console.log("removed playlist from DB");
+      })
+      .catch((err) => {
+        console.log(err.message);
+      });
+  } catch (error) {
+    console.error(
+      "Error updating playlist details:",
+      error.response ? error.response.data : error.message
+    );
   }
 }
 
-
-Handlebars.registerHelper('eq', function (a, b) {
+Handlebars.registerHelper("eq", function (a, b) {
   return a === b;
 });
-
 
 // *****************************************************
 // <!-- Section 6 : Start Server-->
