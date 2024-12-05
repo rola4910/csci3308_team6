@@ -107,7 +107,7 @@ app.get("/", async function (req, res) {
 });
 
 app.get("/home", (req, res) => {
-  res.render("pages/home");
+  res.render("pages/home", { bodyId: "home-page" });
 });
 
 app.get("/login", function (req, res) {
@@ -257,6 +257,7 @@ app.get("/makePlaylist", (req, res) => {
       res.render("pages/makePlaylist", {
         playlists: playlists,
         currentPage: currentPage,
+        bodyId: "make-playlist-page" 
       });
     })
     .catch((err) => {
@@ -329,30 +330,22 @@ app.post('/makePlaylist', (req, res) => {
 					console.error('Error saving session:', err);
 				}
 			});
-      // console.log('current page: ', currentPage);
-      // if (
-      //   currentPage === "/makePlaylist" ||
-      //   currentPage === "/playlistEditor" ||
-      //   currentPage === "/delete"
-      // ) {
-      //   console.log(`pages${currentPage}`);
-  
-      //   res.render(`pages${currentPage}`, {
-      //     currentPage: currentPage,
-      //     // selectedPlaylistId: selectedPlaylistId || null,
-      //     playlists: playlists,
-      //     playlist_songs: playlist_songs || [],
-      //     draftPlaylist: req.session.draftPlaylist || [],
-      //     newPlaylistName: newPlaylistName === "/makePlaylist" ? newPlaylistName : undefined
-      //   });
-      // }
+
+      if(currentPage === '/makePlaylist')
+        bodyId = 'make-playlist-page';
+      else if(currentPage === '/playlistEditor')
+        bodyId = 'edit-playlist-page';
+      else if(currentPage === '/deletePlaylist')
+        bodyId = 'delete-playlist-page';
+ 
       const renderData = {
         currentPage: currentPage,
         playlists: playlists,
         playlist_songs: playlist_songs || [],
         draftPlaylist: req.session.draftPlaylist || [],
         newPlaylistName: newPlaylistName,
-        selectedPlaylistName: selectedPlaylistName
+        selectedPlaylistName: selectedPlaylistName,
+        bodyId: bodyId
         
       };
 
@@ -366,16 +359,6 @@ app.post('/makePlaylist', (req, res) => {
 
       res.render(`pages${currentPage}`, renderData);
 
-      
-
-			// res.render('pages/makePlaylist', {
-			// 	 currentPage: currentPage,
-			// 	// selectedPlaylistId: selectedPlaylistId || null,
-			// 	playlists: playlists,
-			// 	playlist_songs: playlist_songs || [],
-			// 	draftPlaylist: req.session.draftPlaylist || [],
-			// 	newPlaylistName: newPlaylistName
-			// });
 		})
 		.catch(err => {
 			console.error(err);
@@ -396,6 +379,7 @@ app.get("/playlistEditor", (req, res) => {
       res.render("pages/playlistEditor", {
         playlists: playlists,
         currentPage: currentPage,
+        bodyId: "edit-playlist-page"
       });
     })
     .catch((err) => {
@@ -417,69 +401,13 @@ app.get("/delete", (req, res) => {
       res.render("pages/delete", {
         playlists: playlists,
         currentPage: currentPage,
+        bodyId: "delete-playlist-page"
       });
     })
     .catch((err) => {
       console.error(err);
       res.status(500).send("Error retrieving playlists");
     });
-});
-
-app.post("/getSongs", (req, res) => {
-  const playlistId = req.body.id; // Retrieve the id from the query parameters
-  // console.log("chosen id:", playlistId);
-  const playlistName = req.body.name;
-  const currentPage = req.body.currentPage; // Gets the path of the current request
-  const playlist_query = `SELECT * FROM playlists WHERE playlists.owner = '${req.session.uid}';`;
-  const songs_query = `SELECT * FROM playlist_songs WHERE playlist_id = '${playlistId}' AND playlist_songs.owner = '${req.session.uid}';`;
-  // console.log('current page: ', currentPage);
-
-  // console.log('Selected Playlist ID:', playlistId);
-  // console.log('Selected Playlist name:', playlistName);
-
-  db.task("get-everything", (task) => {
-    return task.batch([
-      task.any(playlist_query),
-      task.any(songs_query, playlistId),
-    ]);
-  })
-    .then((data) => {
-      const playlists = data[0];
-      const playlist_songs = data[1];
-      // console.log("queried songs:", playlist_songs);
-      // Render the currentPage with the playlists and playlist songs
-      if (
-        currentPage === "/makePlaylist" ||
-        currentPage === "/playlistEditor" ||
-        currentPage === "/delete"
-      ) {
-        res.render(`pages/${currentPage}`, {
-          playlists: playlists,
-          playlist_songs: playlist_songs,
-          playlistName: playlistName,
-          currentPage: currentPage,
-        });
-      }
-    })
-    .catch((err) => {
-      console.error(err);
-      res.status(500).send("Error retrieving playlists and songs");
-    });
-});
-
-app.post("/makeNewPlaylist", (req, res) => {
-  const newPlaylistName = req.body.newName;
-  res.render("pages/makePlaylist", { newPlaylistName: newPlaylistName });
-  console.log(newPlaylistName);
-  // TODO: INSERT NEW PLAYLIST TRACKS INTO db
-});
-
-app.post("/addSongs", (req, res) => {
-  const selectedSongIDs = req.body.id;
-  console.log("Selected Song IDs:", selectedSongIDs);
-  res.render("pages/makePlaylist", { selectedSongIDs: selectedSongIDs });
-
-  //ADD SONGS TO DRAFT PLAYLIST
 });
 
 // TEST QUERY AGAINST SPOTIFY API - FETCH USER PLAYLISTS
@@ -1000,7 +928,9 @@ function deletePlaylist(playlistID) {
 	  });
   }
   
-
+  Handlebars.registerHelper('eq', function (a, b) {
+    return a === b;
+  });
 
 // *****************************************************
 // <!-- Section 6 : Start Server-->

@@ -7,7 +7,6 @@
     width: 1em;
     height: 1em;
     border-radius: 50%;
-
 }
 
 #chosen-playlist-dropdown {
@@ -108,3 +107,57 @@
     75% { transform: scaleY(1.08); }
     100% { transform: scaleY(1); }
 }
+
+/* HOME PAGE STYLING */
+
+#home-page{
+    background-image: linear-gradient(blue, grey);
+}
+
+/* MAKE PLAYLIST PAGE STYLING */
+#make-playlist-page{
+    background-image: linear-gradient(blue, green);
+}
+
+/* EDIT PLAYLIST PAGE STYLING */
+#edit-playlist-page{
+    background-image: linear-gradient(purple, rgb(17, 132, 171));
+}
+
+.centered-container {
+    display: flex;
+    flex-direction: column; /* Stack elements vertically */
+    justify-content: flex-start; /* Align content to the top */
+    align-items: center; /* Center horizontally */
+    min-height: 100vh; /* Full viewport height */
+    gap: 1rem; /* Spacing between dropdown and playlist card */
+    position: relative; /* Allows positioning child elements */
+  }
+  
+  /* Ensure dropdown and card have proper width */
+
+  #drop-down{
+  }
+  #edit-card-container{
+    margin: 5px;
+  }
+  #edit-playlist-card {
+    
+  
+  }
+  
+  #card-header-edit {
+    font-weight: bold;
+    text-align: center;
+  }
+  
+  .btn {
+    margin-top: 1rem;
+  }
+/* DELETE PAGE STYLING */
+#delete-playlist-page{
+
+}
+/* PLAYER PAGE STYLING */
+
+/* LOGOUT PAGE STYLING */

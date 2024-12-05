@@ -1,7 +1,10 @@
 <!-- TODO: Add the head.hbs partial here -->
 {{> head}}
 <!-- TODO: Add the nav.hbs partial here -->
-{{> nav}}
+
+{{#unless (eq bodyId "login-page")}}
+  {{> nav }}
+{{/unless}}
 {{{body}}}
 <!-- TODO: Add the footer.hbs partial here -->
 {{> footer}}
