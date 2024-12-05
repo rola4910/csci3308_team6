@@ -1,7 +1,7 @@
 <!-- DROP DOWN -->
 <br>
 <div id="delete-dropdown" >
-    {{>dropdown}}
+    {{>dropdown id=id}}
 </div>
 <br>
 
@@ -11,7 +11,7 @@
 </div>
 <div id="submit-delete-btn">
   <form method="post" action="/deletePlaylist" style="display: inline;">
-    <input type="hidden" name="id" value="{{}}">
+    <input type="hidden" name="id" value="{{selectedPlaylistId}}">
     <button type="submit">
       Delete "playlist"
     </button>

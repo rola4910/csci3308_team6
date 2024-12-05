@@ -260,6 +260,7 @@ app.get("/makePlaylist", (req, res) => {
 
   db.any(playlist_query)
     .then((data) => {
+    
       // console.log("makePlaylist:", data[1].name)
       const playlists = data;
       // console.log("makePlaylists query result:", playlists);
@@ -295,6 +296,10 @@ app.post('/makePlaylist', (req, res) => {
 	}
   if (req.body.newName) {
     req.session.newPlaylistName = req.body.newName;
+  }
+  if (req.body.id) {
+    req.session.selectedPlaylistId = selectedPlaylistId;
+    console.log('sekected playlist ID saved to session', req.session.selectedPlaylistId)
   }
 
   console.log("new name: ", newPlaylistName);
@@ -362,7 +367,8 @@ app.post('/makePlaylist', (req, res) => {
         playlist_songs: playlist_songs || [],
         draftPlaylist: req.session.draftPlaylist || [],
         newPlaylistName: newPlaylistName,
-        selectedPlaylistName: selectedPlaylistName
+        selectedPlaylistName: selectedPlaylistName,
+        selectedPlaylistId: req.session.selectedPlaylistId || null,
         
       };
 
@@ -442,7 +448,9 @@ app.get("/delete", (req, res) => {
 
 app.post("/deletePlaylist", async (req, res) => {
   const access_token = req.session.access_token;
-  const playlist_id = req.body.id;
+  const playlist_id = req.session.selectedPlaylistId;
+  console.log('req.body.selectedPlaylistId inside deletePlaylist', req.session.selectedPlaylistId)
+  console.log('playlist_id inside deletePlaylist', playlist_id)
 
   // console.log("recieved id:", playlist_id);
 
