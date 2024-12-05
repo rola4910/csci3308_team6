@@ -268,10 +268,11 @@ app.get("/makePlaylist", (req, res) => {
 app.post('/makePlaylist', (req, res) => {
 	const playlist_query = 'SELECT * FROM playlists;';
 	const currentPage = req.body.currentPage;
-  console.log('Received currentPage:', currentPage); // Log the value of currentPage
-  console.log('req.body:', req.body); // Log the entire body for debugging
+  const selectedPlaylistName = req.body.selectedPlaylistName;
 	const selectedPlaylistId = req.body.id; // Retrieve playlist_id from query params
-	const newPlaylistName = req.body.newName;
+	const newPlaylistName = req.body.newName || req.session.newPlaylistName;
+  const section = req.body.section;
+  const toBeCleared = req.body.toBeCleared;
 	const selectedSongs = Array.isArray(req.body.tracks)
 		? req.body.tracks
 		: req.body.tracks
@@ -282,6 +283,11 @@ app.post('/makePlaylist', (req, res) => {
 	if (!req.session.draftPlaylist) {
 		req.session.draftPlaylist = [];
 	}
+  if (req.body.newName) {
+    req.session.newPlaylistName = req.body.newName;
+  }
+
+  console.log("new name: ", newPlaylistName);
 
 	// If a playlist is selected, get its songs
 	const getSongsPromise = selectedPlaylistId
@@ -292,12 +298,21 @@ app.post('/makePlaylist', (req, res) => {
 		? chosenSongs(selectedSongs)
 		: Promise.resolve([]);
 
+  
+    const clearDraftPlaylistPromise = toBeCleared
+    ? clearDraftPlaylist(req)
+    : Promise.resolve([]);
+  
+
 	Promise.all([
 		getSongsPromise,
 		db.any(playlist_query),
-		chosenSongs(selectedSongs)
+		chosenSongs(selectedSongs),
+    clearDraftPlaylistPromise
+
 	])
-		.then(([playlist_songs, playlists, chosenSongs, newPlaylistName]) => {
+		.then(([playlist_songs, playlists, chosenSongs]) => {
+      console.log('.then: ', newPlaylistName)
 
 
 			if (chosenSongs && Array.isArray(chosenSongs)) {
@@ -314,24 +329,43 @@ app.post('/makePlaylist', (req, res) => {
 					console.error('Error saving session:', err);
 				}
 			});
-      console.log('current page: ', currentPage);
-      if (
-        currentPage === "/makePlaylist" ||
-        currentPage === "/playlistEditor" ||
-        currentPage === "/delete"
-      ) {
-        console.log(`pages${currentPage}`);
+      // console.log('current page: ', currentPage);
+      // if (
+      //   currentPage === "/makePlaylist" ||
+      //   currentPage === "/playlistEditor" ||
+      //   currentPage === "/delete"
+      // ) {
+      //   console.log(`pages${currentPage}`);
   
-        res.render(`pages${currentPage}`, {
-          currentPage: currentPage,
-          // selectedPlaylistId: selectedPlaylistId || null,
-          playlists: playlists,
-          playlist_songs: playlist_songs || [],
-          draftPlaylist: req.session.draftPlaylist || [],
-          newPlaylistName: newPlaylistName === "/makePlaylist" ? newPlaylistName : undefined
-        });
+      //   res.render(`pages${currentPage}`, {
+      //     currentPage: currentPage,
+      //     // selectedPlaylistId: selectedPlaylistId || null,
+      //     playlists: playlists,
+      //     playlist_songs: playlist_songs || [],
+      //     draftPlaylist: req.session.draftPlaylist || [],
+      //     newPlaylistName: newPlaylistName === "/makePlaylist" ? newPlaylistName : undefined
+      //   });
+      // }
+      const renderData = {
+        currentPage: currentPage,
+        playlists: playlists,
+        playlist_songs: playlist_songs || [],
+        draftPlaylist: req.session.draftPlaylist || [],
+        newPlaylistName: newPlaylistName,
+        selectedPlaylistName: selectedPlaylistName
         
+      };
+
+      // Render the playlist_songs only for the relevant section
+      if (req.body.section === 'left') {
+        renderData.playlist_songs = playlist_songs || [];
+      } else if (req.body.section === 'right') {
+        renderData.playlist_songs = []; // Clear the playlist_songs for the other section
       }
+       console.log(renderData);
+
+      res.render(`pages${currentPage}`, renderData);
+
       
 
 			// res.render('pages/makePlaylist', {
@@ -942,6 +976,11 @@ function chosenSongs(selectedSongs) {
 			console.error('Error in chosenSongs:', err); // Log errors
 			throw err;
 		});
+}
+
+function clearDraftPlaylist(req) {
+  req.session.draftPlaylist = [];
+  return Promise.resolve([]);
 }
 
 function deletePlaylist(playlistID) {

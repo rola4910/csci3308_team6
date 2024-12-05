@@ -2,7 +2,7 @@
 <div id="chosen-playlist-card">
     <div class="card">
         <div class="card-header" style="text-align: center;">
-            {{playlistName}}
+            {{selectedPlaylistName}}
         </div>
         <ul class="list-group list-group-flush">
             <li class="list-group-item d-flex justify-content-between">
@@ -17,6 +17,7 @@
                 <ul class="list-group list-group-flush">
                     <input type="hidden" name="currentPage"
                     value="{{currentPage}}">
+
                     {{#each playlist_songs}}
                     <li id="song-list-group"
                         class="list-group-item d-flex justify-content-between">

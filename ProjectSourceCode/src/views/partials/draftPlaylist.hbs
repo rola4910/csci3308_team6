@@ -7,7 +7,7 @@
             {{else}}
             <form action="/makePlaylist" method="POST">
                 <input type="hidden" name="currentPage"
-                    value="{{../currentPage}}">
+                    value="{{currentPage}}">
                 <input autocomplete="off" type="text" class="form-control mb-3"
                     id="playlist-name" name="newName"
                     placeholder="playlist Name">
@@ -21,9 +21,8 @@
                 </li>
             </ul>
             {{#if draftPlaylist}}
-            <script>console.log("TESTER")</script>
             {{#each draftPlaylist}}
-            
+
             <li id="song-list-group"
                 class="list-group-item d-flex justify-content-between">
                 <span>{{this.name}}</span>
@@ -33,5 +32,15 @@
             {{/each}}
             {{/if}}
         </div>
+        <form action="/makePlaylist" method="POST">
+            <input type="hidden" name="currentPage"
+                    value="{{currentPage}}">
+            <input type="hidden" name="toBeCleared"
+                    value="yes">
+            <input type="hidden" name="newName" value="{{newPlaylistName}}">
+
+            <button type="submit" class="btn">Clear Playlist</button>
+            
+        </form>
     </div>
 </div>

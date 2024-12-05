@@ -1,11 +1,20 @@
 <br>
-<div>
-    {{>dropdown currentPage=currentPage}}
+<div class = "row justify-content-between">
+    <div class="col-4">
+        {{>dropdown currentPage=currentPage newPlaylistName=newPlaylistName}}
+    </div>
+    <div class="col-4">
+        <form>
+            <button type="submit">Export to Spotify</button>
+        </form>
+    </div>
+</div>
+    
 </div>
 <br>
 <div class="row">
     <div class="col-sm-4 mb-3 mb-sm-0">
-        {{>chosenPlaylist currentPage=currentPage}}
+        {{>chosenPlaylist currentPage=currentPage newPlaylistName=newPlaylistName}}
     </div>
     <div class="col-sm-7 mb-3 mb-4">
         {{>draftPlaylist currentPage=currentPage}}
