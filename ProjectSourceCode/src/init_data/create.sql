@@ -4,6 +4,7 @@ CREATE TABLE playlists (
     name VARCHAR(100) NOT NULL,
     owner VARCHAR(32) NOT NULL, -- spotify user_id
     playlist_id VARCHAR(32) PRIMARY KEY NOT NULL, -- used for API calls
+    snapshot_id VARCHAR(100) NOT NULL,
     public BOOLEAN NOT NULL
 );
 
@@ -12,6 +13,7 @@ CREATE TABLE playlist_songs (
     id SERIAL PRIMARY KEY,
     name VARCHAR(256) NOT NULL,
     owner VARCHAR(32) NOT NULL, -- spotify user_id
+    uri VARCHAR(256) NOT NULL,
     duration INTEGER NOT NULL,
     artist VARCHAR(256) NOT NULL,
     song_id VARCHAR(32) NOT NULL, -- used for API calls
