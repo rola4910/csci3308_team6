@@ -70,7 +70,7 @@
                     } else {
                         console.error('Failed to transfer playback', response);
                     }
-                }).catch(error => { 
+                }).catch(error => {
                     console.error('Error transferring playback', error);
                 });
             });
@@ -132,8 +132,57 @@
 
             };
 
+            document.getElementById('begin-playback').onclick = function () {
+                const track_uris = [
+                    "spotify:track:2ydjxozpSUZLzmi82KV4Qp"
+                ]; // Replace with actual track URIs
+
+                player.getCurrentState().then(state => {
+                    if (!state) {
+                        console.error("Player state is not available.");
+                        return;
+                    }
+
+                    // Start playback on the current device
+                    startPlayback(state.device_id, track_uris, 0);
+                });
+            };
+
+
             player.connect();
         }
+
+
+        async function startPlayback(device_id, track_uris, position_ms = 0) {
+            const token = "{{ accessToken }}"; // Ensure this is available in the script context
+            const url = "https://api.spotify.com/v1/me/player/play";
+
+            const body = {
+                uris: track_uris,
+                position_ms: position_ms
+            };
+
+            try {
+                const response = await fetch(url, {
+                    method: "PUT",
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(body)
+                });
+
+                if (!response.ok) {
+                    console.error(`Failed to start playback: ${response.status} ${response.statusText}`);
+                } else {
+                    console.log("Playback started successfully.");
+                }
+            } catch (error) {
+                console.error("Error starting playback:", error);
+            }
+        }
+
+
     </script>
 </body>
 
