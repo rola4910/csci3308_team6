@@ -118,6 +118,8 @@
 
 }
 #feature-card-container {
+    background-color: white;
+    border-width: 100px;
     position: relative; /* Ensures cards are positioned above the video */
     z-index: 1; /* Keeps the cards above the video */
     border-radius: 0.5rem; /* Round the corners of the container */
@@ -130,6 +132,7 @@
     border: none; /* Remove borders from cards */
     border-radius: 0.5rem; /* Add rounded corners to cards */
     transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    margin-bottom: 10px;
 }
 .card:hover {
     transform: scale(1.05); /* Slightly enlarge the card on hover */
@@ -173,15 +176,11 @@
   
   /* Ensure dropdown and card have proper width */
 
-  #drop-down{
-  }
+
   #edit-card-container{
     margin: 5px;
   }
-  #edit-playlist-card {
-    
-  
-  }
+
   
   #card-header-edit {
     font-weight: bold;

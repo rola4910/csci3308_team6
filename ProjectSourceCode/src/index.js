@@ -1114,7 +1114,6 @@ async function sortByArtistAsc(playlist_id) {
       const curr_obj = data[i];
       sorted_arr.push(curr_obj);
     }
-    // console.log("GODOGOGOGOG", sorted_arr);
     return sorted_arr;
   })
   .catch((error) => {
@@ -1135,7 +1134,6 @@ async function sortByDateAsc(playlist_id) {
       const curr_obj = data[i];
       sorted_arr.push(curr_obj);
     }
-    // console.log("GODOGOGOGOG", sorted_arr);
     return sorted_arr;
   })
   .catch((error) => {
