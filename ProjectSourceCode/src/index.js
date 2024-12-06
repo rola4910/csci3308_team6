@@ -277,7 +277,7 @@ app.get("/makePlaylist", (req, res) => {
 });
 
 app.post("/makePlaylist", (req, res) => {
-  const playlist_query = "SELECT * FROM playlists;";
+  const playlist_query = `SELECT * FROM playlists WHERE playlists.owner = '${req.session.uid}';`;
   const currentPage = req.body.currentPage;
   const selectedPlaylistName = req.body.selectedPlaylistName;
   const selectedPlaylistId = req.body.id; // Retrieve playlist_id from query params
