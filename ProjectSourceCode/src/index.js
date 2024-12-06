@@ -356,6 +356,8 @@ app.post('/makePlaylist', (req, res) => {
         bodyId = 'edit-playlist-page';
       else if (currentPage === '/deletePlaylist')
         bodyId = 'delete-playlist-page';
+	  else if (currentPage === '/player')
+        bodyId = 'player-page';
 
       const renderData = {
         currentPage: currentPage,
@@ -512,8 +514,27 @@ app.get("/getUserPlaylists", async (req, res) => {
 
 app.get('/player', (req, res) => {
 	const accessToken = req.session.access_token;
+	const playlist_query = `SELECT * FROM playlists WHERE playlists.owner = '${req.session.uid}';`;
+  const currentPage = req.path;
+  const playlist_id = req.body.id;
 
-	res.render('pages/player', { accessToken });
+
+  db.any(playlist_query)
+  .then((data) => {
+	// console.log("delete:", data[1].name)
+	const playlists = data;
+	// Render the makePlaylist page with the playlists and playlist songs
+	res.render("pages/player", {
+	  playlists: playlists,
+	  currentPage: currentPage,
+	  bodyId: "player-page",
+	  accessToken: accessToken
+	});
+  })
+  .catch((err) => {
+	console.error(err);
+	res.status(500).send("Error retrieving playlists");
+  });
 });
 
 
