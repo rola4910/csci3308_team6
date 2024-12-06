@@ -276,21 +276,19 @@ app.get("/makePlaylist", (req, res) => {
     });
 });
 
-app.post('/makePlaylist', (req, res) => {
-  const playlist_query = 'SELECT * FROM playlists;';
+app.post("/makePlaylist", (req, res) => {
+  const playlist_query = "SELECT * FROM playlists;";
   const currentPage = req.body.currentPage;
   const selectedPlaylistName = req.body.selectedPlaylistName;
   const selectedPlaylistId = req.body.id; // Retrieve playlist_id from query params
   const newPlaylistName = req.body.newName || req.session.newPlaylistName;
   const section = req.body.section;
-  const exported = req.body.export;
   const toBeCleared = req.body.toBeCleared;
   const selectedSongs = Array.isArray(req.body.tracks)
     ? req.body.tracks
     : req.body.tracks
-      ? [req.body.tracks] // Wrap single value in an array
-      : [];
-
+    ? [req.body.tracks] // Wrap single value in an array
+    : [];
 
   if (!req.session.draftPlaylist) {
     req.session.draftPlaylist = [];
@@ -300,10 +298,10 @@ app.post('/makePlaylist', (req, res) => {
   }
   if (req.body.id) {
     req.session.selectedPlaylistId = selectedPlaylistId;
-    console.log('sekected playlist ID saved to session', req.session.selectedPlaylistId)
+    // console.log('selected playlist ID saved to session', req.session.selectedPlaylistId)
   }
 
-  console.log("new name: ", newPlaylistName);
+  // console.log("new name: ", newPlaylistName);
 
   // If a playlist is selected, get its songs
   const getSongsPromise = selectedPlaylistId
@@ -314,75 +312,102 @@ app.post('/makePlaylist', (req, res) => {
     ? chosenSongs(selectedSongs)
     : Promise.resolve([]);
 
-
   const clearDraftPlaylistPromise = toBeCleared
     ? clearDraftPlaylist(req)
     : Promise.resolve([]);
 
-  const createPlaylistPromise = req.body.export === "true"
-    ? createPlaylist(req)
+  const sortPlaylistBySongPromise = req.body.sortSong === "true" &&
+  selectedPlaylistId
+    ? sortBySongAsc(selectedPlaylistId)
     : Promise.resolve([]);
+
+  const sortPlaylistByArtistPromise = req.body.sortArtist === "true" &&
+  selectedPlaylistId
+    ? sortByArtistAsc(selectedPlaylistId)
+    : Promise.resolve([]);
+
+  const sortPlaylistByDatePromise = req.body.sortDate === "true" &&
+  selectedPlaylistId
+    ? sortByDateAsc(selectedPlaylistId)
+    : Promise.resolve([]);
+
+
 
   Promise.all([
     getSongsPromise,
     db.any(playlist_query),
     chosenSongs(selectedSongs),
-    createPlaylistPromise,
-    clearDraftPlaylistPromise
-
-
+    sortPlaylistBySongPromise,
+    sortPlaylistByArtistPromise,
+    sortPlaylistByDatePromise,
+    clearDraftPlaylistPromise,
   ])
-    .then(([playlist_songs, playlists, chosenSongs]) => {
+    .then(([playlist_songs, playlists, chosenSongs, sortedSongs, sortedArtists, sortedDates]) => {
       // console.log('.then: ', newPlaylistName)
-
 
       if (chosenSongs && Array.isArray(chosenSongs)) {
         chosenSongs.forEach((song) => {
-          if (!req.session.draftPlaylist.some((s) => s.song_id === song.song_id)) {
+          if (
+            !req.session.draftPlaylist.some((s) => s.song_id === song.song_id)
+          ) {
             req.session.draftPlaylist.push(song);
           }
         });
       }
 
+      if(req.body.sortDateArtistClear === "true"){
+        sortedDates = null;
+        sortedArtists = null;
+      }
+      if(req.body.sortSongDateClear === "true"){
+        sortedSongs = null;
+        sortedDates = null;
+      }
+      if(req.body.sortArtistSongClear === "true"){
+        sortedSongs = null;
+        sortedArtists = null;
+      }
+
       // req.session.draftPlaylist = draftPlaylist;
       req.session.save((err) => {
         if (err) {
-          console.error('Error saving session:', err);
+          console.error("Error saving session:", err);
         }
       });
 
-      if (currentPage === '/makePlaylist')
-        bodyId = 'make-playlist-page';
-      else if (currentPage === '/playlistEditor')
-        bodyId = 'edit-playlist-page';
-      else if (currentPage === '/deletePlaylist')
-        bodyId = 'delete-playlist-page';
+      if (currentPage === "/makePlaylist") bodyId = "make-playlist-page";
+      else if (currentPage === "/playlistEditor") bodyId = "edit-playlist-page";
+      else if (currentPage === "/deletePlaylist")
+        bodyId = "delete-playlist-page";
 
+      console.log("sortedSongs", sortedSongs);
       const renderData = {
         currentPage: currentPage,
         playlists: playlists,
+        selectedPlaylistId: req.session.selectedPlaylistId,
         playlist_songs: playlist_songs || [],
         draftPlaylist: req.session.draftPlaylist || [],
         newPlaylistName: newPlaylistName,
         selectedPlaylistName: selectedPlaylistName,
-        bodyId: bodyId
-
+        bodyId: bodyId,
+        sortedSongs: sortedSongs,
+        sortedArtists: sortedArtists,
+        sortedDates: sortedDates
       };
 
       // Render the playlist_songs only for the relevant section
-      if (req.body.section === 'left') {
+      if (req.body.section === "left") {
         renderData.playlist_songs = playlist_songs || [];
-      } else if (req.body.section === 'right') {
+      } else if (req.body.section === "right") {
         renderData.playlist_songs = []; // Clear the playlist_songs for the other section
       }
       // console.log(renderData);
 
       res.render(`pages${currentPage}`, renderData);
-
     })
-    .catch(err => {
+    .catch((err) => {
       console.error(err);
-      res.status(500).send('Error retrieving playlists and songs');
+      res.status(500).send("Error retrieving playlists and songs");
     });
 });
 
