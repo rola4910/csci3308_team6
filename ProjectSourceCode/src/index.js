@@ -147,7 +147,7 @@ app.get("/register", (req, res) => {
 app.post("/register", async (req, res) => {
   //hash the password using bcrypt library
   const hash = await bcrypt.hash(req.body.password, 10);
-  console.log("test test")
+
   const query = `INSERT INTO users (username, password) VALUES ($1, $2) RETURNING *`;
   const values = [req.body.username, hash];
   db.one(query, values)
