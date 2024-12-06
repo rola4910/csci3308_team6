@@ -6,7 +6,10 @@
     <br>
     <div class="row">
         <div>
-            <form>
+            <form action="/makePlaylist" method="POST">
+                <input type="hidden" name="currentPage" value="{{currentPage}}">
+                <input type="hidden" name="id" value="{{selectedPlaylistId}}">
+                <input type="hidden" name="sortArtist" value="true">
                 <button type="submit" class="btn">SORT</button>
             </form>
         </div>

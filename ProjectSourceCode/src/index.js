@@ -275,6 +275,7 @@ app.post("/makePlaylist", (req, res) => {
   const newPlaylistName = req.body.newName || req.session.newPlaylistName;
   const section = req.body.section;
   const toBeCleared = req.body.toBeCleared;
+  const toSort = req.body.sortArtist;
   const selectedSongs = Array.isArray(req.body.tracks)
     ? req.body.tracks
     : req.body.tracks
@@ -307,13 +308,19 @@ app.post("/makePlaylist", (req, res) => {
     ? clearDraftPlaylist(req)
     : Promise.resolve([]);
 
+  const sortPlaylistByArtist = req.body.sortArtist === "true" && 
+    selectedPlaylistId
+    ? sortByArtistAsc(selectedPlaylistId)
+    : Promise.resolve([]);
+
   Promise.all([
     getSongsPromise,
     db.any(playlist_query),
     chosenSongs(selectedSongs),
+    sortByArtistAsc,
     clearDraftPlaylistPromise,
   ])
-    .then(([playlist_songs, playlists, chosenSongs]) => {
+    .then(([playlist_songs, playlists, chosenSongs, sortedSongs]) => {
       // console.log('.then: ', newPlaylistName)
 
       if (chosenSongs && Array.isArray(chosenSongs)) {
@@ -346,6 +353,7 @@ app.post("/makePlaylist", (req, res) => {
         newPlaylistName: newPlaylistName,
         selectedPlaylistName: selectedPlaylistName,
         bodyId: bodyId,
+        sortedSongs: sortedSongs || []
       };
 
       // Render the playlist_songs only for the relevant section
@@ -1043,6 +1051,35 @@ async function changePlaylistName(
     );
   }
 }
+
+
+async function sortByArtistAsc(playlist_id) {
+  const sort_query = `SELECT * FROM playlist_songs WHERE playlist_id = '${playlist_id}' ORDER BY artist ASC;`;
+  db.many(sort_query)
+  .then((data) => {
+    // console.log("sort_query:", data)
+
+    const sorted_arr = []
+    for (let i = 0; i < data.length; i++) {
+      const song_name = data[i].name;
+      const artist = data[i].artist;
+      const date = data[i].album_release;
+      const obj = {
+        name: song_name,
+        artist: artist,
+        release_date: date
+      }
+      sorted_arr.push(obj);
+    }
+    console.log(sorted_arr);
+    return sorted_arr;
+  })
+  .catch((error) => {
+    console.error(error.message);
+    return error;
+  });
+}
+
 
 Handlebars.registerHelper("eq", function (a, b) {
   return a === b;
