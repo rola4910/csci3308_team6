@@ -302,8 +302,6 @@ app.post('/makePlaylist', (req, res) => {
     console.log('sekected playlist ID saved to session', req.session.selectedPlaylistId)
   }
 
-  console.log("new name: ", newPlaylistName);
-
   // If a playlist is selected, get its songs
   const getSongsPromise = selectedPlaylistId
     ? getSongs(selectedPlaylistId)

@@ -125,13 +125,13 @@
 }
 
 
-.card {
+#card-make, #card-edit, #card-delete, #card-player {
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Add subtle shadow to cards */
     border: none; /* Remove borders from cards */
     border-radius: 0.5rem; /* Add rounded corners to cards */
     transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
-.card:hover {
+#card-make:hover, #card-edit:hover, #card-delete:hover, #card-player:hover {
     transform: scale(1.05); /* Slightly enlarge the card on hover */
     box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15); /* Enhance shadow on hover */
 }
@@ -153,12 +153,21 @@
 
 /* MAKE PLAYLIST PAGE STYLING */
 #make-playlist-page{
-    background-image: linear-gradient(blue, green);
-}
+    height: 100%; /* Ensure the background gradient applies to the full height */
+    margin: 0; /* Remove default margins */
+    padding: 0; /* Remove default padding */
+    background: linear-gradient(purple, rgb(17, 132, 171)); /* Your gradient */
+    background-attachment: fixed; /* Keeps the gradient in place during scroll */
+    background-size: cover; }
 
 /* EDIT PLAYLIST PAGE STYLING */
 #edit-playlist-page{
-    background-image: linear-gradient(purple, rgb(17, 132, 171));
+    height: 100%; /* Ensure the background gradient applies to the full height */
+    margin: 0; /* Remove default margins */
+    padding: 0; /* Remove default padding */
+    background: linear-gradient(purple, rgb(17, 132, 171)); /* Your gradient */
+    background-attachment: fixed; /* Keeps the gradient in place during scroll */
+    background-size: cover; 
 }
 
 .centered-container {
