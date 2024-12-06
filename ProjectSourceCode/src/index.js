@@ -308,8 +308,9 @@ app.post("/makePlaylist", (req, res) => {
     ? clearDraftPlaylist(req)
     : Promise.resolve([]);
 
-  const sortPlaylistByArtist = req.body.sortArtist === "true" && 
-    selectedPlaylistId
+  // console.log("foooooop", req.body.sortArtist, "   id", selectedPlaylistId)
+  const sortPlaylistByArtistPromise = req.body.sortArtist === "true" &&
+  selectedPlaylistId
     ? sortByArtistAsc(selectedPlaylistId)
     : Promise.resolve([]);
 
@@ -317,7 +318,8 @@ app.post("/makePlaylist", (req, res) => {
     getSongsPromise,
     db.any(playlist_query),
     chosenSongs(selectedSongs),
-    sortByArtistAsc,
+    // sortByArtistAsc(selectedPlaylistId),
+    sortPlaylistByArtistPromise,
     clearDraftPlaylistPromise,
   ])
     .then(([playlist_songs, playlists, chosenSongs, sortedSongs]) => {
@@ -345,15 +347,17 @@ app.post("/makePlaylist", (req, res) => {
       else if (currentPage === "/deletePlaylist")
         bodyId = "delete-playlist-page";
 
+      console.log("sortedSongs", sortedSongs);
       const renderData = {
         currentPage: currentPage,
         playlists: playlists,
+        selectedPlaylistId: req.session.selectedPlaylistId,
         playlist_songs: playlist_songs || [],
         draftPlaylist: req.session.draftPlaylist || [],
         newPlaylistName: newPlaylistName,
         selectedPlaylistName: selectedPlaylistName,
         bodyId: bodyId,
-        sortedSongs: sortedSongs || []
+        sortedSongs: sortedSongs
       };
 
       // Render the playlist_songs only for the relevant section
@@ -1055,27 +1059,20 @@ async function changePlaylistName(
 
 async function sortByArtistAsc(playlist_id) {
   const sort_query = `SELECT * FROM playlist_songs WHERE playlist_id = '${playlist_id}' ORDER BY artist ASC;`;
-  db.many(sort_query)
+  db.any(sort_query)
   .then((data) => {
     // console.log("sort_query:", data)
 
     const sorted_arr = []
     for (let i = 0; i < data.length; i++) {
-      const song_name = data[i].name;
-      const artist = data[i].artist;
-      const date = data[i].album_release;
-      const obj = {
-        name: song_name,
-        artist: artist,
-        release_date: date
-      }
-      sorted_arr.push(obj);
+      const curr_obj = data[i];
+      sorted_arr.push(curr_obj);
     }
-    console.log(sorted_arr);
+    // console.log("GODOGOGOGOG", sorted_arr);
     return sorted_arr;
   })
   .catch((error) => {
-    console.error(error.message);
+    // console.log("ERROROROROOR", error.message);
     return error;
   });
 }
