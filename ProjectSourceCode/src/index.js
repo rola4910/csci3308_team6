@@ -1007,6 +1007,70 @@ async function deleteSongs(snapshot_id, uris, playlist_id, access_token) {
 Handlebars.registerHelper('eq', function (a, b) {
   return a === b;
 });
+
+
+async function sortBySongAsc(playlist_id) {
+  const sort_query = `SELECT * FROM playlist_songs WHERE playlist_id = '${playlist_id}' ORDER BY name ASC;`;
+  return db.any(sort_query)
+  .then((data) => {
+    // console.log("sort_query:", data)
+
+    const sorted_arr = []
+    for (let i = 0; i < data.length; i++) {
+      const curr_obj = data[i];
+      sorted_arr.push(curr_obj);
+    }
+    return sorted_arr;
+  })
+  .catch((error) => {
+    console.log("Error:", error.message);
+    return [];
+  });
+}
+
+
+async function sortByArtistAsc(playlist_id) {
+  const sort_query = `SELECT * FROM playlist_songs WHERE playlist_id = '${playlist_id}' ORDER BY artist ASC;`;
+  return db.any(sort_query)
+  .then((data) => {
+    // console.log("sort_query:", data)
+
+    const sorted_arr = []
+    for (let i = 0; i < data.length; i++) {
+      const curr_obj = data[i];
+      sorted_arr.push(curr_obj);
+    }
+    // console.log("GODOGOGOGOG", sorted_arr);
+    return sorted_arr;
+  })
+  .catch((error) => {
+    console.log("Error:", error.message);
+    return [];
+  });
+}
+
+
+async function sortByDateAsc(playlist_id) {
+  const sort_query = `SELECT * FROM playlist_songs WHERE playlist_id = '${playlist_id}' ORDER BY album_release ASC;`;
+  return db.any(sort_query)
+  .then((data) => {
+    // console.log("sort_query:", data)
+
+    const sorted_arr = []
+    for (let i = 0; i < data.length; i++) {
+      const curr_obj = data[i];
+      sorted_arr.push(curr_obj);
+    }
+    // console.log("GODOGOGOGOG", sorted_arr);
+    return sorted_arr;
+  })
+  .catch((error) => {
+    console.log("Error:", error.message);
+    return [];
+  });
+}
+
+
 function deletePlaylist(playlistID) {
   const deleteSongsQuery = 'DELETE FROM playlist_songs WHERE playlist_id = $1;';
   const changePlaylistTitle = 'UPDATE playlists SET name = $1 WHERE playlist_id = $2;';
