@@ -125,10 +125,6 @@
     padding: 2rem; /* Add padding inside the container */
 }
 
-<<<<<<< HEAD
-=======
-
->>>>>>> front-end
 #card-make, #card-edit, #card-delete, #card-player {
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Add subtle shadow to cards */
     border: none; /* Remove borders from cards */

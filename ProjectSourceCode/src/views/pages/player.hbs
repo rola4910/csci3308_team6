@@ -1,92 +1,46 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Fix Your Mix Web Player</title>
+</head>
+
+<body>
+    <h1 style="margin-left: 25px;">Fix Your Mix Web Player</h1>
 
 
-<title>Spotify Web Playback</title>
+    <div class="container" style="justify-content: center;">
+        <button class="btn-spotify" id="transferPlayback">Transfer Playback</button>
 
-<h1 style="margin-left: 5em;">Spotify Web Playback</h1>
+        <div className="container">
 
-<div class="container" style="justify-content: center;">
-    <div>
-        {{>dropdown bodyId=bodyId}}
-    </div>
-    {{!-- START OF CHOSEN PLAYLIST PARTIAL --}}
-    <div>
-        <!-- SELECTED PLAYLIST CARD -->
-        <div id="chosen-playlist-card">
-            <div class="card">
-                <div class="card-header" style="text-align: center;">
-                    {{selectedPlaylistName}}
+            <button id="begin-playback">Begin Playback</button>
+
+            <div className="main-wrapper">
+                <img src='' className="now-playing__cover" id="current-track-cover" alt="" />
+
+                <div className="now-playing__side">
+                    <b>Now Playing: </b>
+                    <div className="now-playing__name" id="current-track"></div>
+                    <p>by </p>
+                    <div className="now-playing__artist" id="current-track-artist"></div>
                 </div>
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item d-flex justify-content-between">
-                        <span></span>
-                        <span>Song</span>
-                        <span>Artist</span>
-                        <span>Release Date</span>
-                    </li>
-
-                    <!-- Example Playlist Songs -->
-                    <form action="/makePlaylist" method="POST">
-                        <ul class="list-group list-group-flush">
-                            <input type="hidden" name="currentPage"
-                                value="{{currentPage}}">
-
-                            {{#each playlist_songs}}
-                            <li id="song-list-group"
-                                class="list-group-item d-flex justify-content-between">
-                                <form>
-                                <input id={{this.song_id}} type="hidden"
-                                    name="track" value={{this.song_id}}>
-                                <span><button type="submit">Play</button></span>
-                                </form>
-                                <span>{{this.name}}</span>
-                                <span>{{this.artist}}</span>
-                                <span>{{this.album_release}}</span>
-                            </li>
-                            {{/each}}
-                        </ul>
-                        <button type="submit" class="btn">Add Selected
-                            Songs</button>
-                    </form>
-                </ul>
+                <div>
+                    <b>Up Next: </b>
+                    <div id="up-next"></div>
+                </div>
             </div>
         </div>
 
-    </div>
-    {{!-- END OF CHOSEN PLAYLIST PARTIAL --}}
-
-    <button class="btn btn-spotify" id="transferPlayback">Transfer Playback</button>
-
-    <div className="container">
-
-        <button class="btn" id="begin-playback">Begin Playback</button>
-
-        <div className="main-wrapper">
-            <img src className="now-playing__cover" style="margin-top: 25px; height: 125px; width: 125px;" id="current-track-cover"
-                alt />
-
-            <div className="now-playing__side">
-                <b>Now Playing: </b>
-                <div className="now-playing__name" id="current-track"></div>
-                <p>by </p>
-                <div className="now-playing__artist"
-                    id="current-track-artist"></div>
-            </div>
-            <div>
-                <b>Up Next: </b>
-                <div id="up-next"></div>
-            </div>
+        <div class="btn-group btn-group-lg" role="group">
+            <button className="btn-spotify" id="skipBack">Skip Back</button>
+            <button className="btn-spotify" id="togglePlay">Toggle Play</button>
+            <button className="btn-spotify" id="skipForward">Skip Forward</button>
         </div>
     </div>
 
-    <div class="btn-group btn-group-lg" role="group">
-        <button class="btn" className="btn-spotify" id="skipBack"><<</button>
-        <button class="btn" className="btn-spotify" id="togglePlay">Pause/Play</button>
-        <button class="btn" className="btn-spotify" id="skipForward">>></button>
-    </div>
-</div>
-
-<script src="https://sdk.scdn.co/spotify-player.js"></script>
-<script>
+    <script src="https://sdk.scdn.co/spotify-player.js"></script>
+    <script>
         const token = "{{ accessToken }}";
         // console.log("Accesss Token: ", {{accessToken}});
         window.onSpotifyWebPlaybackSDKReady = () => {
@@ -230,3 +184,6 @@
 
 
     </script>
+</body>
+
+</html>
