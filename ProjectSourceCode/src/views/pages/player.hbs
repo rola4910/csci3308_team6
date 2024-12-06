@@ -1,8 +1,8 @@
 
 
-<title>Spotify Web Playback SDK Quick Start</title>
+<title>Spotify Web Playback</title>
 
-<h1>Spotify Web Playback SDK Quick Start</h1>
+<h1 style="margin-left: 5em;">Spotify Web Playback</h1>
 
 <div class="container" style="justify-content: center;">
     <div>
@@ -54,14 +54,14 @@
     </div>
     {{!-- END OF CHOSEN PLAYLIST PARTIAL --}}
 
-    <button class="btn-spotify" id="transferPlayback">Transfer Playback</button>
+    <button class="btn btn-spotify" id="transferPlayback">Transfer Playback</button>
 
     <div className="container">
 
-        <button id="begin-playback">Begin Playback</button>
+        <button class="btn" id="begin-playback">Begin Playback</button>
 
         <div className="main-wrapper">
-            <img src className="now-playing__cover" id="current-track-cover"
+            <img src className="now-playing__cover" style="margin-top: 25px; height: 125px; width: 125px;" id="current-track-cover"
                 alt />
 
             <div className="now-playing__side">
@@ -79,9 +79,9 @@
     </div>
 
     <div class="btn-group btn-group-lg" role="group">
-        <button className="btn-spotify" id="skipBack">Skip Back</button>
-        <button className="btn-spotify" id="togglePlay">Toggle Play</button>
-        <button className="btn-spotify" id="skipForward">Skip Forward</button>
+        <button class="btn" className="btn-spotify" id="skipBack"><<</button>
+        <button class="btn" className="btn-spotify" id="togglePlay">Pause/Play</button>
+        <button class="btn" className="btn-spotify" id="skipForward">>></button>
     </div>
 </div>
 

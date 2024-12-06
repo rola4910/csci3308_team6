@@ -200,10 +200,96 @@
   .btn {
     margin-top: 1rem;
   }
+
+  #export_btn {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: white;
+  }
+
+  #export_btn:hover {
+    background-color: #5c636a;
+    border-color: #5c636a;
+  }
+
 /* DELETE PAGE STYLING */
 #delete-playlist-page{
     background-color: purple;
 }
+
+#delete-playlist-btn {
+    background-color: #bd1717;
+    border-color: #bd1717;
+    color: white;
+}
+
+#delete-playlist-btn:hover {
+    background-color: #9a110a;
+    border-color: #9a110a;
+    color: white;
+}
+
+
 /* PLAYER PAGE STYLING */
+#player-page {
+    background: linear-gradient(purple, rgb(17, 132, 171));
+}
+
+#transferPlayback {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: white;
+}
+
+#transferPlayback:hover {
+    background-color: #5c636a;
+    border-color: #5c636a;
+}
+
+#begin-playback {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: white;
+}
+
+#begin-playback:hover {
+    background-color: #5c636a;
+    border-color: #5c636a;
+}
+
+#skipBack {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: white;
+}
+
+#skipBack:hover {
+    background-color: #5c636a;
+    border-color: #5c636a;
+}
+
+#togglePlay {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: white;
+}
+
+#togglePlay:hover {
+    background-color: #5c636a;
+    border-color: #5c636a;
+}
+
+#skipForward {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: white;
+}
+
+#skipForward:hover {
+    background-color: #5c636a;
+    border-color: #5c636a;
+}
+
+
 
 /* LOGOUT PAGE STYLING */
