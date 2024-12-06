@@ -35,18 +35,18 @@
     </div>
 
     <!-- SELECTED PLAYLIST CARD -->
-<div id="edit-card-container" class="col-8">
-    <div id="edit-playlist-card" >
-        <div id="card-header-edit">
-            {{selectedPlaylistName}}
-        </div>
-        <ul class="list-group list-group-flush">
-            <li class="list-group-item d-flex justify-content-between">
-                <span></span>
-                <span>Song</span>
-                <span>Artist</span>
-                <span>Release Date</span>
-            </li>
+    <div id="edit-card-container" class="col-8">
+        <div id="edit-playlist-card">
+            <div id="card-header-edit">
+                {{selectedPlaylistName}}
+            </div>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item d-flex justify-content-between">
+                    <span></span>
+                    <span>Song</span>
+                    <span>Artist</span>
+                    <span>Release Date</span>
+                </li>
 
             <!-- Example Playlist Songs -->
             <form action="/makePlaylist" method="POST">
