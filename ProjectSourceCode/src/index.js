@@ -275,7 +275,6 @@ app.post("/makePlaylist", (req, res) => {
   const newPlaylistName = req.body.newName || req.session.newPlaylistName;
   const section = req.body.section;
   const toBeCleared = req.body.toBeCleared;
-  const toSort = req.body.sortArtist;
   const selectedSongs = Array.isArray(req.body.tracks)
     ? req.body.tracks
     : req.body.tracks
@@ -308,21 +307,33 @@ app.post("/makePlaylist", (req, res) => {
     ? clearDraftPlaylist(req)
     : Promise.resolve([]);
 
-  // console.log("foooooop", req.body.sortArtist, "   id", selectedPlaylistId)
+  const sortPlaylistBySongPromise = req.body.sortSong === "true" &&
+  selectedPlaylistId
+    ? sortBySongAsc(selectedPlaylistId)
+    : Promise.resolve([]);
+
   const sortPlaylistByArtistPromise = req.body.sortArtist === "true" &&
   selectedPlaylistId
     ? sortByArtistAsc(selectedPlaylistId)
     : Promise.resolve([]);
 
+  const sortPlaylistByDatePromise = req.body.sortDate === "true" &&
+  selectedPlaylistId
+    ? sortByDateAsc(selectedPlaylistId)
+    : Promise.resolve([]);
+
+
+
   Promise.all([
     getSongsPromise,
     db.any(playlist_query),
     chosenSongs(selectedSongs),
-    // sortByArtistAsc(selectedPlaylistId),
+    sortPlaylistBySongPromise,
     sortPlaylistByArtistPromise,
+    sortPlaylistByDatePromise,
     clearDraftPlaylistPromise,
   ])
-    .then(([playlist_songs, playlists, chosenSongs, sortedSongs]) => {
+    .then(([playlist_songs, playlists, chosenSongs, sortedSongs, sortedArtists, sortedDates]) => {
       // console.log('.then: ', newPlaylistName)
 
       if (chosenSongs && Array.isArray(chosenSongs)) {
@@ -333,6 +344,19 @@ app.post("/makePlaylist", (req, res) => {
             req.session.draftPlaylist.push(song);
           }
         });
+      }
+
+      if(req.body.sortDateArtistClear === "true"){
+        sortedDates = null;
+        sortedArtists = null;
+      }
+      if(req.body.sortSongDateClear === "true"){
+        sortedSongs = null;
+        sortedDates = null;
+      }
+      if(req.body.sortArtistSongClear === "true"){
+        sortedSongs = null;
+        sortedArtists = null;
       }
 
       // req.session.draftPlaylist = draftPlaylist;
@@ -357,7 +381,9 @@ app.post("/makePlaylist", (req, res) => {
         newPlaylistName: newPlaylistName,
         selectedPlaylistName: selectedPlaylistName,
         bodyId: bodyId,
-        sortedSongs: sortedSongs
+        sortedSongs: sortedSongs,
+        sortedArtists: sortedArtists,
+        sortedDates: sortedDates
       };
 
       // Render the playlist_songs only for the relevant section
@@ -1057,9 +1083,29 @@ async function changePlaylistName(
 }
 
 
+async function sortBySongAsc(playlist_id) {
+  const sort_query = `SELECT * FROM playlist_songs WHERE playlist_id = '${playlist_id}' ORDER BY name ASC;`;
+  return db.any(sort_query)
+  .then((data) => {
+    // console.log("sort_query:", data)
+
+    const sorted_arr = []
+    for (let i = 0; i < data.length; i++) {
+      const curr_obj = data[i];
+      sorted_arr.push(curr_obj);
+    }
+    return sorted_arr;
+  })
+  .catch((error) => {
+    console.log("Error:", error.message);
+    return [];
+  });
+}
+
+
 async function sortByArtistAsc(playlist_id) {
   const sort_query = `SELECT * FROM playlist_songs WHERE playlist_id = '${playlist_id}' ORDER BY artist ASC;`;
-  db.any(sort_query)
+  return db.any(sort_query)
   .then((data) => {
     // console.log("sort_query:", data)
 
@@ -1072,8 +1118,29 @@ async function sortByArtistAsc(playlist_id) {
     return sorted_arr;
   })
   .catch((error) => {
-    // console.log("ERROROROROOR", error.message);
-    return error;
+    console.log("Error:", error.message);
+    return [];
+  });
+}
+
+
+async function sortByDateAsc(playlist_id) {
+  const sort_query = `SELECT * FROM playlist_songs WHERE playlist_id = '${playlist_id}' ORDER BY album_release ASC;`;
+  return db.any(sort_query)
+  .then((data) => {
+    // console.log("sort_query:", data)
+
+    const sorted_arr = []
+    for (let i = 0; i < data.length; i++) {
+      const curr_obj = data[i];
+      sorted_arr.push(curr_obj);
+    }
+    // console.log("GODOGOGOGOG", sorted_arr);
+    return sorted_arr;
+  })
+  .catch((error) => {
+    console.log("Error:", error.message);
+    return [];
   });
 }
 
