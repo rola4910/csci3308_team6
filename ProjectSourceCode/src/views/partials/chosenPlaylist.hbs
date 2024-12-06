@@ -2,7 +2,7 @@
 <div id="chosen-playlist-card">
     <div class="card">
         <div class="card-header" style="text-align: center;">
-            {{playlistName}}
+            {{selectedPlaylistName}}
         </div>
         <ul class="list-group list-group-flush">
             <li class="list-group-item d-flex justify-content-between">
@@ -13,61 +13,23 @@
             </li>
 
             <!-- Example Playlist Songs -->
-            <ul class="list-group list-group-flush">
-                <li class="list-group-item d-flex justify-content-between">
-                    <span>Song</span>
-                    <span>Artist</span>
-                    <span>Release Date</span>
-                </li>
-                {{!-- TESTING: DELETE LATER --}}
+            <form action="/makePlaylist" method="POST">
                 <ul class="list-group list-group-flush">
-                    <li class="list-group-item d-flex justify-content-between">
-                        <button id="song-selector"style="background-color: transparent" onclick="colorChange()"></button>
-                        <span>a</span>
-                    </li>
-                </ul>
+                    <input type="hidden" name="currentPage"
+                    value="{{currentPage}}">
 
-                <!-- Example Playlist Songs -->
-                {{#each playlist_songs}}
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item d-flex justify-content-between">
-                        <button style="background-color: transparent" onclick="colorChange(this)"></button>
+                    {{#each playlist_songs}}
+                    <li id="song-list-group"
+                        class="list-group-item d-flex justify-content-between">
+                        <input id={{this.song_id}} type="checkbox" name="tracks" value={{this.song_id}}>
+                        <span>{{this.name}}</span>
                         <span>{{this.artist}}</span>
                         <span>{{this.album_release}}</span>
                     </li>
+                    {{/each}}
                 </ul>
-                 {{/each}}
-                {{#each playlist_songs}}
-                <li id="song-list-group"
-                    class="list-group-item d-flex justify-content-between">
-                    <button class="song-selector"
-                        style="background-color: transparent"
-                        onclick="colorChange(event)"></button>
-                    <span>{{this.name}}</span>
-                    <span>{{this.artist}}</span>
-                    <span>{{this.album_release}}</span>
-                </li>
-                {{/each}}
-            </ul>
+                <button type="submit" class="btn">Add Selected Songs</button>
+            </form>
         </ul>
     </div>
 </div>
-
-{{!-- FIXME: atm you only get to click it once, it turns blue and then thats it. fix to where you can unselect --}}
-<script>
-function colorChange() {
-let button = document.getElementById("song-selector");
-
-  if (button.style.backgroundColor === "rgb(139, 0, 139)") {
-    button.style.backgroundColor = "transparent"; // Reset to default
-  } else {
-    button.style.backgroundColor = "rgb(139, 0, 139)"; // Set to selected color
-  }
-}
-</script>
-
-<script>
-function selectPlaylist() {
-    var selectedPlaylist = playlists.name;  
-}
-</script>

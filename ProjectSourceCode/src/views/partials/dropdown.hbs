@@ -1,5 +1,4 @@
-
-<div id="chosen-playlist-dropdown" class="dropdown">
+<div id="chosen-playlist-dropdown-{{section}}" class="dropdown">
     <button class="btn btn-secondary dropdown-toggle" type="button"
         data-bs-toggle="dropdown" aria-expanded="false">
         Select a Playlist
@@ -7,14 +6,17 @@
     <ul class="dropdown-menu">
         {{#each playlists}}
         <li class="playlist-selector">
-            {{!-- <a href="/getSongs?id={{this.id}}&name={{this.name}}&currentPage={{../currentPage}}">{{this.name}}
-            </a> --}}
-            <form action="/getSongs" method="POST" style="display: inline;">
-                <input type="hidden" name="id" value="{{this.id}}">
-                <input type="hidden" name="name" value="{{this.name}}">
-                <input type="hidden" name="currentPage" value="{{../currentPage}}">
-                <button type="submit" class="dropdown-item">{{this.name}}</button>
+            <form action="/makePlaylist" method="POST"
+                style="display: inline;">
+                <input type="hidden" name="id" value="{{this.playlist_id}}">
+                <input type="hidden" name="section" value="{{section}}">
+                <input type="hidden" name="selectedPlaylistName" value="{{this.name}}">
+                <input type="hidden" name="currentPage"
+                    value="{{../currentPage}}">
+                <button type="submit"
+                    class="dropdown-item">{{this.name}}</button>
             </form>
+            {{!-- <button type="submit" class="dropdown-item">{{this.name}}</button> --}}
         </li>
         {{/each}}
     </ul>

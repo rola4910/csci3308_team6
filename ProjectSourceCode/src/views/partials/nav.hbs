@@ -1,51 +1,53 @@
-<nav class="navbar navbar-light" style="background-color: #5bc0de;">
-    <div class="container">
-        <a class="navbar-brand" href="/login">Fix Your Mix</a>
-        <div class="dropdown">
-            <button class="navbar-toggler dropdown-toggle" type="button" id="navbarDropdown" 
-            data-bs-toggle="dropdown" aria-expanded="false">
-                <img src="/resources/images/logo.png" width="70">
-            </button>
-            <!-- Dropdown Menu -->
-            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                <li>
-                    {{#if login}}
-                    <a class="dropdown-item" href='/playlistEditor'>Playlist Editor</a>
-                    {{else}}
-                    <a class="dropdown-item" href='/playlistEditor'>Playlist Editor</a>
-                    {{/if}}
-                </li>
-                <li>
-                    {{#if login}}
-                    <a class="dropdown-item" href='/makePlaylist'>Make a Playlist</a>
-                    {{else}}
-                    <a class="dropdown-item" href='/makePlaylist'>Make a Playlist</a>
-                    {{/if}}
-                </li>
-                <li>
-                    {{#if login}}
-                    <a class="dropdown-item" href='/delete.hbs'>Delete Playlist</a>
-                    {{else}}
-                    <a class="dropdown-item" href='/delete.hbs'>Delete Playlist</a>
-                    {{/if}}
-                </li>
-                <li>
-                    {{#if login}}
-                    <a class="dropdown-item" href='/concerts'>Concerts Near Me</a>
-                    {{else}}
-                    <a class="dropdown-item" href='/concerts'>Concerts Near Me</a>
-                    {{/if}}
-                </li>
-                <li>
-                    {{#if login}}
-                    <a class="dropdown-item" href='/logout'>Logout</a>
-                    {{else}}
-                    <a class="dropdown-item" href='/logout'>Logout</a>
-                    {{/if}}
-                </li>
-            </ul>
-        </div>
+<nav class="navbar navbar-light" style="background-color: transparent;">
+  <div class="container">
+    <a class="navbar-brand" href="/home">Fix Your Mix</a>
+    <div class="dropdown">
+      <button
+        class="navbar-toggler dropdown-toggle"
+        type="button"
+        id="navbarDropdown"
+        data-bs-toggle="dropdown"
+        aria-expanded="false"
+      >
+        <img src="/resources/images/logo.png" width="70" />
+      </button>
+      <!-- Dropdown Menu -->
+      <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+        <li>
+          <a class="dropdown-item" href='/home'>Home</a>
+        </li>
+        <li>
+          {{#if login}}
+            <a class="dropdown-item" href="/makePlaylist">Make a Playlist</a>
+          {{else}}
+            <a class="dropdown-item" href="/makePlaylist">Make a Playlist</a>
+          {{/if}}
+        </li>
+        <li>
+          {{#if login}}
+            <a class="dropdown-item" href="/playlistEditor">Playlist Editor</a>
+          {{else}}
+            <a class="dropdown-item" href="/playlistEditor">Playlist Editor</a>
+          {{/if}}
+        </li>
+        <li>
+          {{#if login}}
+            <a class="dropdown-item" href="/delete">Delete Playlist</a>
+          {{else}}
+            <a class="dropdown-item" href="/delete">Delete Playlist</a>
+          {{/if}}
+        </li>
+        <li>
+          {{#if login}}
+            <a class="dropdown-item" href="/player">Song Player</a>
+          {{else}}
+            <a class="dropdown-item" href="/player">Song Player</a>
+          {{/if}}
+        </li>
+        <li>
+          <a class="dropdown-item" href="/logout">Logout</a>
+        </li>
+      </ul>
     </div>
+  </div>
 </nav>
-
-
