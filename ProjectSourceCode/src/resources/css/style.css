@@ -7,7 +7,6 @@
     width: 1em;
     height: 1em;
     border-radius: 50%;
-
 }
 
 #chosen-playlist-dropdown {
@@ -63,7 +62,13 @@
     border: none;
     background-color: transparent;  
 }
-
+#reg-txt
+{
+    font-size: 14px;
+    font-family: 'Minecraft', sans-serif;
+    color: rgb(30 215 96);
+    margin-left: -50px;
+}
 
 
 
@@ -97,8 +102,6 @@
     transform-origin: center bottom;
 }
 
-
-
 @keyframes stretchTop {
     0% { transform: scaleY(1); }
     25% { transform: scaleY(1.05); }
@@ -106,3 +109,92 @@
     75% { transform: scaleY(1.08); }
     100% { transform: scaleY(1); }
 }
+
+/* HOME PAGE STYLING */
+
+#home-page{
+    background-image: url('../images/Screenshot\ 2024-12-05\ at\ 12.59.32\ PM.png');
+    object-fit: cover;
+
+}
+#feature-card-container {
+    position: relative; /* Ensures cards are positioned above the video */
+    z-index: 1; /* Keeps the cards above the video */
+    border-radius: 0.5rem; /* Round the corners of the container */
+    padding: 2rem; /* Add padding inside the container */
+}
+
+
+.card {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Add subtle shadow to cards */
+    border: none; /* Remove borders from cards */
+    border-radius: 0.5rem; /* Add rounded corners to cards */
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+.card:hover {
+    transform: scale(1.05); /* Slightly enlarge the card on hover */
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15); /* Enhance shadow on hover */
+}
+.card-title {
+    font-size: 1.25rem;
+    color: #333; /* Dark text for readability */
+}
+
+#background-video {
+    position: fixed; /* Fix the video to cover the entire viewport */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Ensures the video covers the entire container */
+    z-index: -1; /* Push the video behind all other content */
+
+}
+
+/* MAKE PLAYLIST PAGE STYLING */
+#make-playlist-page{
+    background-image: linear-gradient(blue, green);
+}
+
+/* EDIT PLAYLIST PAGE STYLING */
+#edit-playlist-page{
+    background-image: linear-gradient(purple, rgb(17, 132, 171));
+}
+
+.centered-container {
+    display: flex;
+    flex-direction: column; /* Stack elements vertically */
+    justify-content: flex-start; /* Align content to the top */
+    align-items: center; /* Center horizontally */
+    min-height: 100vh; /* Full viewport height */
+    gap: 1rem; /* Spacing between dropdown and playlist card */
+    position: relative; /* Allows positioning child elements */
+  }
+  
+  /* Ensure dropdown and card have proper width */
+
+  #drop-down{
+  }
+  #edit-card-container{
+    margin: 5px;
+  }
+  #edit-playlist-card {
+    
+  
+  }
+  
+  #card-header-edit {
+    font-weight: bold;
+    text-align: center;
+  }
+  
+  .btn {
+    margin-top: 1rem;
+  }
+/* DELETE PAGE STYLING */
+#delete-playlist-page{
+    background-color: purple;
+}
+/* PLAYER PAGE STYLING */
+
+/* LOGOUT PAGE STYLING */

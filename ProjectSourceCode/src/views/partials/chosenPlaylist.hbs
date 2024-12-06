@@ -2,7 +2,7 @@
 <div id="chosen-playlist-card">
     <div class="card">
         <div class="card-header" style="text-align: center;">
-            {{playlistName}}
+            {{selectedPlaylistName}}
         </div>
         <ul class="list-group list-group-flush">
             <li class="list-group-item d-flex justify-content-between">
@@ -15,10 +15,13 @@
             <!-- Example Playlist Songs -->
             <form action="/makePlaylist" method="POST">
                 <ul class="list-group list-group-flush">
+                    <input type="hidden" name="currentPage"
+                    value="{{currentPage}}">
+
                     {{#each playlist_songs}}
                     <li id="song-list-group"
                         class="list-group-item d-flex justify-content-between">
-                        <input id={{this}} type="checkbox" name="tracks" value={{this}}>
+                        <input id={{this.song_id}} type="checkbox" name="tracks" value={{this.song_id}}>
                         <span>{{this.name}}</span>
                         <span>{{this.artist}}</span>
                         <span>{{this.album_release}}</span>

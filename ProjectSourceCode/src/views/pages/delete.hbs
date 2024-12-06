@@ -1,11 +1,13 @@
-<!-- DROP DOWN -->
-<br>
-<div id="delete-dropdown" >
-    {{>dropdown}}
-</div>
-<br>
-
-<div id="delete-cancel-btns">
-  <button id="cancel-btn"><i class="bi bi-box-arrow-in-left"></i></button>
-  <button id="delete-btn">{{>flameTEST}}</button>
+<div class="container">
+    <h2>Delete Playlist</h2>
+    <div id="delete-dropdown">
+        <!-- Replace this placeholder with your dropdown component -->
+        {{>dropdown id=id}}
+    </div>
+    <div id="submit-delete-btn">
+        <form method="post" action="/deletePlaylist">
+            <input type="hidden" name="id" value="{{selectedPlaylistId}}">
+        <button id="delete-btn">{{>flame}}</button>
+        </form>
+    </div>
 </div>
