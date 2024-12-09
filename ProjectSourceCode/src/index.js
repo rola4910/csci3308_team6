@@ -170,13 +170,13 @@ app.get("/login2", function (req, res) {
 
   res.redirect(
     "https://accounts.spotify.com/authorize?" +
-      querystring.stringify({
-        response_type: "code",
-        client_id: clientId,
-        scope: scope,
-        redirect_uri: redirectUri,
-        state: state,
-      })
+    querystring.stringify({
+      response_type: "code",
+      client_id: clientId,
+      scope: scope,
+      redirect_uri: redirectUri,
+      state: state,
+    })
   );
 });
 
@@ -188,9 +188,9 @@ app.get("/callback", async function (req, res) {
   if (state === null) {
     res.redirect(
       "/login" +
-        querystring.stringify({
-          error: "state_mismatch",
-        })
+      querystring.stringify({
+        error: "state_mismatch",
+      })
     );
   } else {
     var authOptions = {
@@ -273,7 +273,9 @@ app.post("/makePlaylist", (req, res) => {
   const selectedPlaylistName = req.body.selectedPlaylistName;
   const selectedPlaylistId = req.body.id; // Retrieve playlist_id from query params
   const newPlaylistName = req.body.newName || req.session.newPlaylistName;
+  var bodyId = req.body.bodyId;
   const section = req.body.section;
+  const exported = req.body.export;
   const toBeCleared = req.body.toBeCleared;
   const selectedSongs = Array.isArray(req.body.tracks)
     ? req.body.tracks
@@ -291,8 +293,6 @@ app.post("/makePlaylist", (req, res) => {
     req.session.selectedPlaylistId = selectedPlaylistId;
     // console.log('selected playlist ID saved to session', req.session.selectedPlaylistId)
   }
-
-  // console.log("new name: ", newPlaylistName);
 
   // If a playlist is selected, get its songs
   const getSongsPromise = selectedPlaylistId
@@ -322,6 +322,10 @@ app.post("/makePlaylist", (req, res) => {
     ? sortByDateAsc(selectedPlaylistId)
     : Promise.resolve([]);
 
+  const createPlaylistPromise = req.body.export === "true"
+    ? createPlaylist(req)
+    : Promise.resolve([]);
+
 
 
   Promise.all([
@@ -331,6 +335,7 @@ app.post("/makePlaylist", (req, res) => {
     sortPlaylistBySongPromise,
     sortPlaylistByArtistPromise,
     sortPlaylistByDatePromise,
+    createPlaylistPromise,
     clearDraftPlaylistPromise,
   ])
     .then(([playlist_songs, playlists, chosenSongs, sortedSongs, sortedArtists, sortedDates]) => {
@@ -366,12 +371,15 @@ app.post("/makePlaylist", (req, res) => {
         }
       });
 
-      if (currentPage === "/makePlaylist") bodyId = "make-playlist-page";
-      else if (currentPage === "/playlistEditor") bodyId = "edit-playlist-page";
-      else if (currentPage === "/deletePlaylist")
-        bodyId = "delete-playlist-page";
+      if (currentPage === '/makePlaylist')
+        bodyId = 'make-playlist-page';
+      else if (currentPage === '/playlistEditor')
+        bodyId = 'edit-playlist-page';
+      else if (currentPage === '/deletePlaylist')
+        bodyId = 'delete-playlist-page';
+	  else if (currentPage === '/player')
+        bodyId = 'player-page';
 
-      console.log("sortedSongs", sortedSongs);
       const renderData = {
         currentPage: currentPage,
         playlists: playlists,
@@ -393,6 +401,7 @@ app.post("/makePlaylist", (req, res) => {
         renderData.playlist_songs = []; // Clear the playlist_songs for the other section
       }
       // console.log(renderData);
+      // console.log(renderData);
 
       res.render(`pages${currentPage}`, renderData);
     })
@@ -406,12 +415,13 @@ app.get("/playlistEditor", (req, res) => {
   const playlist_query = `SELECT * FROM playlists WHERE playlists.owner = '${req.session.uid}';`;
   const currentPage = req.path;
   // console.log(currentPage);
+  // console.log(currentPage);
 
   db.any(playlist_query)
     .then((data) => {
       const playlists = data;
       // Render the makePlaylist page with the playlists and playlist songs
-      console.log(currentPage);
+      // console.log(currentPage);
       res.render("pages/playlistEditor", {
         playlists: playlists,
         currentPage: currentPage,
@@ -490,7 +500,8 @@ app.get("/getUserPlaylists", async (req, res) => {
 
   if (req.session.access_token != null) {
     req.session.uid = await get_id(req.session.access_token);
-  } else {
+  }
+  else {
     res.send("Error with user_id");
     return;
   }
@@ -526,6 +537,32 @@ app.get("/getUserPlaylists", async (req, res) => {
     res.send(error.message);
   }
 });
+
+app.get('/player', (req, res) => {
+	const accessToken = req.session.access_token;
+	const playlist_query = `SELECT * FROM playlists WHERE playlists.owner = '${req.session.uid}';`;
+  const currentPage = req.path;
+  const playlist_id = req.body.id;
+
+
+  db.any(playlist_query)
+  .then((data) => {
+	// console.log("delete:", data[1].name)
+	const playlists = data;
+	// Render the makePlaylist page with the playlists and playlist songs
+	res.render("pages/player", {
+	  playlists: playlists,
+	  currentPage: currentPage,
+	  bodyId: "player-page",
+	  accessToken: accessToken
+	});
+  })
+  .catch((err) => {
+	console.error(err);
+	res.status(500).send("Error retrieving playlists");
+  });
+});
+
 
 // *****************************************************
 // <!-- Section 5 : Helper Functions
@@ -598,7 +635,7 @@ const monitorTokens = (req) => {
 async function get_id(access_token) {
   const options = {
     headers: {
-      Authorization: `Bearer ${access_token}`,
+      Authorization: `Bearer ${access_token}`
     },
   };
 
@@ -806,6 +843,7 @@ async function addSongsFromPlaylist(playlistId, accessToken, uid) {
       options
     );
     var num_songs = response.data.total;
+    // console.log(response.data);
 
     if (num_songs <= 100) {
       // there are 100 or less songs, so we do not need any 'next' calls
@@ -1148,6 +1186,143 @@ async function sortByDateAsc(playlist_id) {
 Handlebars.registerHelper("eq", function (a, b) {
   return a === b;
 });
+function deletePlaylist(playlistID) {
+  const deleteSongsQuery = 'DELETE FROM playlist_songs WHERE playlist_id = $1;';
+  const changePlaylistTitle = 'UPDATE playlists SET name = $1 WHERE playlist_id = $2;';
+  const deletedName = 'deleted';
+
+  db.batch([
+    db.none(deleteSongsQuery, [playlistID]),
+    db.none(changePlaylistTitle, [deletedName, playlistID])
+  ])
+    .then(() => {
+      console.log('Songs deleted and playlist name updated successfully.');
+    })
+    .catch((err) => {
+      console.error('Error processing deletePlaylist:', err);
+    });
+}
+
+async function createPlaylist(req) {
+  console.log("IM RUNNING MAKE PLAYLIST WHEN THE EXPORT BUTTON IS CLICKED YUH!");
+  const playlist_name = req.session.newPlaylistName;
+  const draft_playlist = req.session.draftPlaylist;
+
+  const access_token = req.session.access_token;
+
+  const user_id = req.session.uid;
+  console.log("THIS THE USER ID: ", user_id);
+
+  const headers = {
+    'Authorization': `Bearer ${access_token}`,
+    'Content-Type': 'application/json'
+
+  };
+
+  const data = {
+    'name': playlist_name,
+    'public': false,
+    'collaborative': false,
+    'description': ''
+  };
+
+  const track_uris = [];
+
+  for (let i = 0; i < draft_playlist.length; i++) {
+    let uri = draft_playlist[i].uri;
+    track_uris.push(uri);
+  }
+
+  try {
+    const playlist_response = await axios.post(`https://api.spotify.com/v1/users/${user_id}/playlists`, data, { headers });
+    // console.log(playlist_response);
+
+    var playlist_id = playlist_response.data.id;
+    var snapshot_id = playlist_response.data.snapshot_id;
+    var public = playlist_response.data.public;
+
+    try {
+      const body = {
+        'uris': track_uris,
+        'position': 0
+      };
+
+      const tracks_response = axios.post(`https://api.spotify.com/v1/playlists/${playlist_id}/tracks`, body, { headers });
+      // console.log(tracks_response);
+
+    } catch (error) {
+      console.log(error);
+    }
+
+  } catch (error) {
+    console.log(error);
+  }
+
+  const playlist_query = `INSERT INTO playlists (name, owner, playlist_id, snapshot_id, public) VALUES ('${playlist_name}', '${user_id}', '${playlist_id}', '${snapshot_id}', ${public}) RETURNING *;`;
+
+  db.one(playlist_query)
+    .then((data) => {
+      // playlist has been inserted. now to add songs from this specific playlist
+      addSongsFromPlaylist(playlist_id, access_token, user_id);
+      return;
+    })
+    .catch((err) => {
+      console.log(err.message);
+      return;
+    });
+
+}
+
+// TODO finish function
+async function setPlayerTrack(req) {
+	const device_id = req.device_id;
+	const access_token = req.session.access_token;
+
+	const track_uri = getTrackURI(req.body.track_id);
+	console.log('TRACK URI: ', track_uri);
+
+	const offset = 0;
+
+	const options = {
+		headers: {
+			'Authorization': `Bearer ${access_token}`,
+			'Content-Type': 'application/json',
+			'device_id': device_id
+		}
+	};
+
+	const body = {
+		'uris': track_uri,
+		'position_ms': 0
+	}
+
+	try {
+		await axios.put(`https://api.spotify.com/v1/me/player/play`, body, options);
+		return;
+	} catch (error) {
+		console.log(error);
+		return;
+	}
+};
+
+async function getTrackURI(track_id) {
+	const access_token = req.session.access_token;
+
+	const config = {
+		headers: {
+		  'Authorization': `Bearer ${access_token}`,
+		  'Content-Type': 'application/json'
+		}
+	  };
+
+	try {
+		const response = await axios.get(`https://api.spotify.com/v1/tracks/${track_id}`, config);
+		const uri = response.tracks[0].uri;
+		return [uri];
+	} catch (error) {
+		console.error(error);
+	}
+};
 
 // *****************************************************
 // <!-- Section 6 : Start Server-->

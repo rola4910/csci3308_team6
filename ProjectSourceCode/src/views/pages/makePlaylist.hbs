@@ -1,22 +1,36 @@
+<script src="../../index.js"></script>
 <br>
-<div class = "row justify-content-between">
-    <div class="col-4">
-        {{>dropdown currentPage=currentPage newPlaylistName=newPlaylistName}}
+{{!--
+<script src="index.js"></script> --}}
+<div style="width: 95%; margin: 0 auto;">
+
+    <div class="row justify-content-between" style="width: 100%; margin: 0 auto;">
+        <div class="col-4">
+            {{>dropdown currentPage=currentPage newPlaylistName=newPlaylistName}}
+        </div>
+        <div class="col-4">
+            <form action="/makePlaylist" method="POST">
+                <input type="hidden" name="currentPage" value="{{currentPage}}">
+                <input type="hidden" name="export" value="true">
+                <button id="export_btn" class="btn" type="submit">Export to Spotify</button>
+            </form>
+        </div>
     </div>
-    <div class="col-4">
-        <form>
-            <button type="submit">Export to Spotify</button>
-        </form>
+
+    <br>
+    <div class="row">
+        <div class="col-sm-4 mb-3 mb-sm-0">
+            {{>chosenPlaylist currentPage=currentPage newPlaylistName=newPlaylistName}}
+        </div>
+        <div class="col-sm-7 mb-3 mb-4">
+            {{>draftPlaylist currentPage=currentPage}}
+        </div>
     </div>
-</div>
-    
-</div>
-<br>
-<div class="row">
-    <div class="col-sm-4 mb-3 mb-sm-0">
-        {{>chosenPlaylist currentPage=currentPage newPlaylistName=newPlaylistName}}
-    </div>
-    <div class="col-sm-7 mb-3 mb-4">
-        {{>draftPlaylist currentPage=currentPage}}
-    </div>
+    {{!--
+    <script>
+        document.getElementById("export_btn").addEventListener('click', function (event) {
+            event.preventDefault(); // Prevent form submission
+            createPlaylist(); // Call your function
+        });
+    </script> --}}
 </div>

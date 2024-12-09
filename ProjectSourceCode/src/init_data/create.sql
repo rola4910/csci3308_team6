@@ -28,6 +28,6 @@ CREATE TABLE playlist_songs (
 
 DROP TABLE IF EXISTS users;
 CREATE TABLE users (
-    username VARCHAR(100) NOT NULL,
+    username VARCHAR(100) NOT NULL CHECK (username ~ '^[^0-9]+$'),
     password VARCHAR(100) NOT NULL
 );

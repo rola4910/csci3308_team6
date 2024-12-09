@@ -38,3 +38,5 @@ Relase Notes:
  - Added getUserPlaylist functionality
  - User sessions now store tokens
  - Added background token refresh functionality
+ - Added login page with link to spotify auth
+ - Updated dropdown
